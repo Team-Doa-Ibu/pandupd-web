@@ -11,6 +11,7 @@ export const NavMenu: React.FC<NavMenuProps> = ({
   text,
   type = "default",
   className = "",
+  stateProp, // ambil tapi jangan diteruskan ke <a>
   ...props
 }) => {
   const base =
@@ -23,6 +24,7 @@ export const NavMenu: React.FC<NavMenuProps> = ({
     <a
       href="#"
       className={`${base} ${styles} ${className}`}
+      // ...props tanpa stateProp
       {...props}
     >
       {text}

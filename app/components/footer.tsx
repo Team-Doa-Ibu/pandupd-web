@@ -2,131 +2,57 @@ import PropTypes from "prop-types";
 import React from "react";
 import { NavMenu } from "./footer-menu";
 
-export const Footer = ({ text = "Parked", line = "line-4.svg" }) => {
+export const Footer = ({ text = "Parked" }) => {
   return (
-    <div className="w-[1440px] h-[512px] bg-neutral-800">
-      <div className="flex flex-col w-[1152px] items-start gap-6 relative top-[101px] left-36">
-        <div className="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
-          <div className="flex flex-col w-[319px] items-start gap-6 relative">
-            <div className="relative self-stretch mt-[-1.00px] [font-family:'Lato-Bold',Helvetica] font-bold text-white text-4xl tracking-[0] leading-[normal]">
-              {text}
-            </div>
-
-            <p className="relative self-stretch [font-family:'Lato',Helvetica] text-white text-base tracking-[0] leading-[normal]">
+    <div className="w-full bg-neutral-800">
+      <div className="flex flex-col w-full max-w-screen-xl mx-auto items-start gap-8 py-10 px-4 md:px-8">
+        <div className="flex flex-col md:flex-row flex-wrap md:items-start items-center justify-between w-full gap-8">
+          <div className="flex flex-col w-full md:w-auto max-w-[319px] items-start gap-4">
+            <div className="font-bold text-white text-3xl md:text-4xl">{text}</div>
+            <p className="text-white text-base text-left">
               Memberdayakan melalui edukasi dan deteksi dini penyakit Parkinson.
             </p>
           </div>
 
-          <div className="flex w-[489px] items-start gap-6 relative">
-            <div className="flex flex-col items-start gap-6 relative flex-1 grow">
-              <div className="flex items-center justify-center gap-2.5 px-2.5 py-0 relative self-stretch w-full flex-[0_0_auto]">
-                <div className="relative flex-1 mt-[-1.00px] [font-family:'Lato-Bold',Helvetica] font-bold text-white text-base tracking-[0] leading-[normal]">
-                  Tautan Cepat
-                </div>
-              </div>
-
-              <div className="flex flex-col items-start justify-center gap-[15px] relative self-stretch w-full flex-[0_0_auto]">
-                <NavMenu
-                  className="!flex-[0_0_auto]"
-                  stateProp="default"
-                  text="Cek Sekarang"
-                  type="footer"
-                />
-                <NavMenu
-                  className="!flex-[0_0_auto]"
-                  stateProp="default"
-                  text="Terapi"
-                  type="footer"
-                />
-                <NavMenu
-                  className="!flex-[0_0_auto]"
-                  stateProp="default"
-                  text="Artikel"
-                  type="footer"
-                />
-                <NavMenu
-                  className="!flex-[0_0_auto]"
-                  stateProp="default"
-                  text="Riwayat"
-                  type="footer"
-                />
+          <div className="flex flex-col sm:flex-row flex-1 flex-wrap gap-8 justify-end w-full md:w-auto items-start">
+            <div className="flex flex-col gap-4 min-w-[150px]">
+              <div className="font-bold text-white text-base">Tautan Cepat</div>
+              <div className="flex flex-col gap-2">
+                <NavMenu text="Cek Sekarang" type="footer" />
+                <NavMenu text="Terapi" type="footer" />
+                <NavMenu text="Artikel" type="footer" />
+                <NavMenu text="Riwayat" type="footer" />
               </div>
             </div>
-
-            <div className="flex flex-col items-start justify-center gap-6 relative flex-1 grow">
-              <div className="flex items-center justify-center gap-2.5 px-2.5 py-0 relative self-stretch w-full flex-[0_0_auto]">
-                <div className="relative flex-1 mt-[-1.00px] [font-family:'Lato-Bold',Helvetica] font-bold text-white text-base tracking-[0] leading-[normal]">
-                  Alat Diagnosis
-                </div>
+            <div className="flex flex-col gap-4 min-w-[150px]">
+              <div className="font-bold text-white text-base">
+                Alat Diagnosis
               </div>
-
-              <div className="flex flex-col items-start justify-center gap-[15px] relative self-stretch w-full flex-[0_0_auto]">
-                <NavMenu
-                  className="!flex-[0_0_auto]"
-                  stateProp="default"
-                  text="Gambar Spiral"
-                  type="footer"
-                />
-                <NavMenu
-                  className="!mr-[-4.00px] !flex-[0_0_auto]"
-                  stateProp="default"
-                  text="Analisis Pola Suara"
-                  type="footer"
-                />
+              <div className="flex flex-col gap-2">
+                <NavMenu text="Gambar Spiral" type="footer" />
+                <NavMenu text="Analisis Pola Suara" type="footer" />
               </div>
             </div>
-
-            <div className="flex flex-col items-start gap-6 relative flex-1 grow">
-              <div className="flex items-center justify-center gap-2.5 px-2.5 py-0 relative self-stretch w-full flex-[0_0_auto]">
-                <div className="relative flex-1 mt-[-1.00px] [font-family:'Lato-Bold',Helvetica] font-bold text-white text-base tracking-[0] leading-[normal]">
-                  Informasi
-                </div>
-              </div>
-
-              <div className="flex flex-col items-start justify-center gap-[15px] relative self-stretch w-full flex-[0_0_auto]">
-                <NavMenu
-                  className="!self-stretch !flex-[0_0_auto] ![justify-content:unset] !flex !w-full"
-                  stateProp="default"
-                  text="Tentang Kami"
-                  type="footer"
-                />
-                <NavMenu
-                  className="!flex-[0_0_auto] ![justify-content:unset]"
-                  stateProp="default"
-                  text="Hubungi Kami"
-                  type="footer"
-                />
+            <div className="flex flex-col gap-4 min-w-[150px]">
+              <div className="font-bold text-white text-base">Informasi</div>
+              <div className="flex flex-col gap-2">
+                <NavMenu text="Tentang Kami" type="footer" />
+                <NavMenu text="Hubungi Kami" type="footer" />
               </div>
             </div>
           </div>
         </div>
 
-        <hr className="relative self-stretch w-full border-t border-neutral-600 my-6" />
+        <hr className="w-full border-t border-neutral-600 my-6" />
 
-        <div className="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
-          <p className="relative w-fit [font-family:'Lato-Medium',Helvetica] font-medium text-white text-base tracking-[0] leading-[normal] whitespace-nowrap">
+        <div className="flex flex-col md:flex-row items-center justify-between w-full gap-4">
+          <p className="font-medium text-white text-base text-center md:text-left">
             © 2024 Parked. Hak Cipta Dilindungi.
           </p>
-
-          <div className="inline-flex items-center gap-3 relative flex-[0_0_auto]">
-            <NavMenu
-              className="!flex-[0_0_auto]"
-              stateProp="default"
-              text="Kebijakan Privasi"
-              type="footer"
-            />
-            <NavMenu
-              className="!flex-[0_0_auto]"
-              stateProp="default"
-              text="Ketentuan Layanan"
-              type="footer"
-            />
-            <NavMenu
-              className="!flex-[0_0_auto]"
-              stateProp="default"
-              text="Kebijakan Cookie"
-              type="footer"
-            />
+          <div className="flex flex-wrap items-center gap-3 justify-center md:justify-end w-full md:w-auto">
+            <NavMenu text="Kebijakan Privasi" type="footer" />
+            <NavMenu text="Ketentuan Layanan" type="footer" />
+            <NavMenu text="Kebijakan Cookie" type="footer" />
           </div>
         </div>
       </div>
@@ -136,5 +62,4 @@ export const Footer = ({ text = "Parked", line = "line-4.svg" }) => {
 
 Footer.propTypes = {
   text: PropTypes.string,
-  line: PropTypes.string,
 };

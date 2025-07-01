@@ -1,9 +1,8 @@
 import React from "react";
-import logo from "../assets/logo.png"; // Ganti path jika logo Anda berbeda
 
 export function Navbar() {
   return (
-    <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-[1300px] bg-white rounded-full shadow flex items-center px-6 py-2">
+    <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-screen-xl box-border bg-white rounded-full shadow flex items-center px-6 py-2">
       <div className="flex items-center gap-2">
         <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full" />
         <span className="font-semibold text-black">Parked</span>
