@@ -1,7 +1,8 @@
 import type { MetaFunction } from "@remix-run/node";
 import { Navbar } from "../components/navbar";
 import { Footer } from "../components/footer";
-
+import { LandingPage } from "../components/landing-page";
+import { ChatBot } from "../components/chat-bot";
 export const meta: MetaFunction = () => {
   return [
     { title: "Doa Ibu - Platform Prediksi Parkinson" },
@@ -12,7 +13,10 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   return (
     <>
-      <Footer />
+    <Navbar />
+    <LandingPage />
+    <Footer />
+    <ChatBot />
     </>
   );
 }

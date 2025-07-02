@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { NavMenu } from "./footer-menu";
 
-export const Footer = ({ text = "Parked" }) => {
+export const Footer = ({ text = "PANDU‑PD" }) => {
   return (
     <div className="w-full bg-neutral-800">
       <div className="flex flex-col w-full max-w-screen-xl mx-auto items-start gap-8 py-10 px-4 md:px-8">
@@ -47,7 +47,7 @@ export const Footer = ({ text = "Parked" }) => {
 
         <div className="flex flex-col md:flex-row items-center justify-between w-full gap-4">
           <p className="font-medium text-white text-base text-center md:text-left">
-            © 2024 Parked. Hak Cipta Dilindungi.
+            © 2025 PANDU‑PD. Hak Cipta Dilindungi.
           </p>
           <div className="flex flex-wrap items-center gap-3 justify-center md:justify-end w-full md:w-auto">
             <NavMenu text="Kebijakan Privasi" type="footer" />
