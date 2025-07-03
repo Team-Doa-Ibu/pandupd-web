@@ -48,8 +48,8 @@ export function Navbar() {
             </li>
             <li>
               <a 
-                href="/riwayat" 
-                className={currentPath === "/riwayat" ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-blue-600"}
+                href="/history" 
+                className={currentPath === "/history" ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-blue-600"}
               >
                 Riwayat
               </a>
@@ -59,9 +59,11 @@ export function Navbar() {
         
         {/* Login Button */}
         <div className="hidden md:block">
-          <button className="bg-blue-500 text-white px-5 py-1.5 rounded-full font-semibold hover:bg-blue-600 transition">
-            Masuk
-          </button>
+          <a href="/Login">
+            <button className="bg-blue-500 text-white px-5 py-1.5 rounded-full font-semibold hover:bg-blue-600 transition">
+              Masuk
+            </button>
+          </a>
         </div>
         
         {/* Mobile Menu Button */}
@@ -115,17 +117,19 @@ export function Navbar() {
             </li>
             <li>
               <a 
-                href="/riwayat" 
-                className={`block px-6 py-2 ${currentPath === "/riwayat" ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"}`}
+                href="/history" 
+                className={`block px-6 py-2 ${currentPath === "/history" ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"}`}
               >
                 Riwayat
               </a>
             </li>
             <li className="border-t border-gray-100 mt-2 pt-2">
               <div className="px-6 py-2">
-                <button className="w-full bg-blue-500 text-white px-5 py-2 rounded-full font-semibold hover:bg-blue-600 transition">
-                  Masuk
-                </button>
+                <a href="/Login">
+                  <button className="w-full bg-blue-500 text-white px-5 py-2 rounded-full font-semibold hover:bg-blue-600 transition">
+                    Masuk
+                  </button>
+                </a>
               </div>
             </li>
           </ul>
