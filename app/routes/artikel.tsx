@@ -1,8 +1,8 @@
 import React from "react";
-import { Navbar } from "~/components/navbar";
-import { Footer } from "~/components/footer";
-import { ArtikelPage } from "~/components/artikel-page";
-import { ChatBot } from "~/components/chat-bot";
+import { Navbar } from "~/components/ui/Navbar";
+import { Footer } from "~/components/ui/footer";
+import { ArtikelPage } from "~/components/pages/ArtikelPage";
+import { ChatBot } from "~/components/ui/chat-bot";
 
 export default function Artikel() {
   return (
@@ -13,4 +13,4 @@ export default function Artikel() {
       <ChatBot />
     </>
   );
-} 
+}

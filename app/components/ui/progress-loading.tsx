@@ -15,7 +15,7 @@ export default function ProgressLoading({
   subtitle = "Mohon tunggu sebentar",
   redirectUrl,
   redirectTime = 3600,
-  spinnerColor = "border-amber-400", // ffc107 equivalent in Tailwind
+  spinnerColor = "border-amber-400", 
   progressColor = "bg-amber-400",
   onLoadingComplete
 }: ProgressLoadingProps) {

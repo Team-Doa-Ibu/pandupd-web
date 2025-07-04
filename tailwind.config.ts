@@ -7,7 +7,7 @@ export default {
     extend: {
       fontFamily: {
         sans: [
-          "Inter",
+          "Lato",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",
@@ -16,6 +16,11 @@ export default {
           "Segoe UI Symbol",
           "Noto Color Emoji",
         ],
+        mono: [
+          "Geist Mono",
+          "ui-monospace",
+          "SFMono-Regular",
+        ]
       },
       animation: {
         'wave': 'wave 1.2s linear infinite',

@@ -14,9 +14,16 @@
     "@remix-run/node": "^2.16.8",
     "@remix-run/react": "^2.16.8",
     "@remix-run/serve": "^2.16.8",
+    "@tabler/icons-react": "^3.34.0",
+    "@types/recordrtc": "^5.6.14",
+    "@types/wavesurfer.js": "^6.0.12",
     "isbot": "^4.1.0",
+    "microphone": "^1.0.8",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-sketch-canvas": "^6.2.0",
+    "recordrtc": "^5.6.2",
+    "wavesurfer.js": "^7.9.9"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.16.8",
@@ -32,6 +39,8 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "postcss": "^8.4.38",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.13",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.1.6",
     "vite": "^6.0.0",
