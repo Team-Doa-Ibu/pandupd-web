@@ -14,15 +14,14 @@ export const NavMenu: React.FC<NavMenuProps> = ({
   stateProp, // ambil tapi jangan diteruskan ke <a>
   ...props
 }) => {
-  const base =
-    "px-4 py-1 rounded-full font-medium transition cursor-pointer";
+  const base = "py-1 rounded-full font-medium transition cursor-pointer";
   const styles =
     type === "footer"
-      ? "bg-transparent text-white hover:text-yellow-400"
+      ? "bg-transparent text-white/50 hover:text-yellow-400"
       : "bg-blue-500 text-white hover:bg-blue-600";
   return (
     <a
-      href="#"
+      href="/"
       className={`${base} ${styles} ${className}`}
       // ...props tanpa stateProp
       {...props}
