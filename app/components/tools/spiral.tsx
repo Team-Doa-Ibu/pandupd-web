@@ -1,4 +1,4 @@
-import { IconCircleCheckFilled } from "@tabler/icons-react";
+import { IconCircleCheckFilled, IconX } from "@tabler/icons-react";
 import { useState, useRef } from "react";
 import { ReactSketchCanvas, ReactSketchCanvasRef } from "react-sketch-canvas";
 
@@ -40,7 +40,7 @@ export default function Spiral({ onConfirm }: SpiralProps) {
       {!drawingMode && !isConfirmed && (
         <button
           onClick={handleStartDrawing}
-          className="w-full rounded-lg bg-blue-500 shadow-inner shadow-white/50 px-6 py-3 text-white hover:bg-blue-600"
+          className="w-full rounded-lg bg-blue-500 px-6 py-3 text-white shadow-inner shadow-white/50 hover:bg-blue-600"
         >
           Mulai Gambar
         </button>
@@ -76,8 +76,9 @@ export default function Spiral({ onConfirm }: SpiralProps) {
               <>
                 <button
                   onClick={handleCancel}
-                  className="flex-1 rounded-full bg-red-100 px-4 py-2 text-red-700 hover:bg-red-200"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-red-300 bg-red-100 px-4 py-2 text-red-700 hover:bg-red-200"
                 >
+                  <IconX size={18} />
                   Batal
                 </button>
                 <button

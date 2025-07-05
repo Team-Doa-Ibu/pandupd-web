@@ -7,6 +7,7 @@ import {
   IconTrash,
   IconUpload,
   IconCircleCheckFilled,
+  IconX,
 } from "@tabler/icons-react";
 import WaveSurfer from "wavesurfer.js";
 
@@ -220,7 +221,7 @@ export default function Audio({ onConfirm }: AudioProps) {
   return (
     <div className="space-y-4">
       {mode === "idle" && (
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
           <button
             onClick={startRecording}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-500 px-6 py-3 text-white shadow-inner shadow-white/50 hover:bg-blue-600"
@@ -280,7 +281,7 @@ export default function Audio({ onConfirm }: AudioProps) {
                 </button>
                 <button
                   onClick={handleReset}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2 text-neutral-700 hover:bg-neutral-100"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-4 py-2 text-neutral-700 hover:bg-neutral-100"
                 >
                   <IconTrash size={18} />
                   Batal
@@ -292,15 +293,15 @@ export default function Audio({ onConfirm }: AudioProps) {
                   <>
                     <button
                       onClick={handleReset}
-                      className="flex items-center justify-center gap-2 rounded-full border border-red-300 bg-red-100 px-4 py-2 text-red-700 hover:bg-red-200"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-full border border-red-300 bg-red-100 px-4 py-2 text-red-700 hover:bg-red-200"
                     >
-                      <IconTrash size={18} />
-                      Hapus
+                      <IconX size={18} />
+                      Batal
                     </button>
 
                     <button
                       onClick={togglePlayPause}
-                      className="flex items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2 text-neutral-700 hover:bg-neutral-100 focus:outline focus:outline-blue-300"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2 text-neutral-700 hover:bg-neutral-100 focus:outline focus:outline-blue-300"
                     >
                       {isPlaying ? (
                         <IconPlayerPause size={18} />
