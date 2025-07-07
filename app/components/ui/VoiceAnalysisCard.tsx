@@ -1,0 +1,47 @@
+import React from "react";
+
+interface VoiceAnalysisCardProps {
+  imageSrc: string;
+  isDetected: boolean;
+}
+
+export function VoiceAnalysisCard({ imageSrc, isDetected }: VoiceAnalysisCardProps) {
+  return (
+    <div className={`rounded-xl overflow-hidden shadow-md ${isDetected ? "border-2 border-red-200" : ""}`}>
+      <div className="p-4 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <img 
+            src="voice-spectrum-icon.png" 
+            alt="Ikon Suara" 
+            className="w-125 h-125 text-blue-500"
+          />
+        </div>
+        <h3 className="text-lg font-medium text-gray-800">Skrining dengan Analisis Suara</h3>
+      </div>
+      
+      <div className="w-full">
+        <img 
+          src="voice-analysis.png" 
+          alt="Analisis Suara" 
+          className={`w-full h-64 object-cover ${isDetected ? "grayscale" : ""}`} 
+        />
+      </div>
+      
+      <div className="p-4">
+        <button 
+          className={`w-full py-3 rounded-md font-medium text-white ${
+            isDetected ? "bg-red-500" : "bg-gray-500"
+          }`}
+        >
+          {isDetected ? "Terdeteksi" : "Tidak Terdeteksi"}
+        </button>
+        
+        <p className="mt-4 text-gray-600">
+          {isDetected 
+            ? "Ditemukan indikasi Parkinson pada Analisis Suara" 
+            : "Tidak ditemukan indikasi Parkinson pada Analisis Suara"}
+        </p>
+      </div>
+    </div>
+  );
+}
