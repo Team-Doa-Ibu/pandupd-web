@@ -1,71 +1,5 @@
 import React, { useEffect, useState } from "react";
-
-// Tipe data untuk artikel
-interface Article {
-  id: string;
-  image: string;
-  title: string;
-  description: string;
-  isi: string;
-  likes: number;
-  dislikes: number;
-}
-
-// Data artikel (idealnya ini akan diambil dari API atau context)
-const allArticles = [
-  // Terapi Articles
-  {
-    id: "1",
-    image: "physiotherapy.png",
-    title: "Fisioterapi",
-    description:
-      "Terapi untuk mengatasi kekakuan otot dan sendi, meningkatkan kemampuan gerak dan keseimbangan.",
-    isi: "<h2>Apa itu Fisioterapi?</h2> <p>Fisioterapi adalah komponen penting dalam mengelola penyakit Parkinson. Ini melibatkan metode fisik untuk meningkatkan gerakan, fungsi, dan kesejahteraan secara keseluruhan. Bagi pasien Parkinson, fisioterapi bertujuan untuk mempertahankan dan meningkatkan mobilitas, keseimbangan, dan kualitas hidup.</p><h3>Teknik Utama Fisioterapi untuk Parkinson:</h3><ul> <li><strong>Latihan Berjalan:</strong> Meningkatkan pola berjalan dan mengurangi risiko jatuh.</li><li><strong>Latihan Keseimbangan:</strong> Meningkatkan stabilitas dan mencegah jatuh.</li><li><strong>Peregangan:</strong> Mempertahankan fleksibilitas dan mengurangi kekakuan otot.</li><li><strong>Latihan Kekuatan:</strong> Membangun kekuatan otot dan memperbaiki postur.</li> <li><strong>Latihan Aerobik:</strong> Meningkatkan kesehatan kardiovaskular dan tingkat energi.</li><li><strong>Latihan Motorik Halus:</strong> Meningkatkan ketangkasan tangan untuk tugas sehari-hari.</li></ul><h3>Proses Fisioterapi:</h3><ol><li><strong>Penilaian:</strong> Mengevaluasi kondisi dan kebutuhan spesifik pasien.</li><li><strong>Penetapan Tujuan:</strong> Menetapkan tujuan yang realistis dan dapat dicapai.</li><li><strong>Rencana Perawatan:</strong> Merancang program terapi yang dipersonalisasi.</li><li><strong>Sesi Rutin:</strong> Menerapkan latihan dan teknik di bawah bimbingan.</li><li><strong>Program Latihan di Rumah:</strong> Memberikan latihan untuk praktik berkelanjutan di rumah.</li><li><strong>Pemantauan Kemajuan:</strong> Evaluasi rutin untuk menyesuaikan rencana perawatan sesuai kebutuhan.</li></ol><p>Fisioterapi untuk Parkinson adalah proses berkelanjutan yang sering membutuhkan komitmen jangka panjang. Ini paling efektif ketika dimulai sejak dini dan dipertahankan secara konsisten sepanjang perjalanan penyakit.</p>",
-    likes: 12,
-    dislikes: 2,
-  },
-  {
-    id: "2",
-    image: "speech-therapy.png",
-    title: "Terapi Wicara",
-    description:
-      "Membantu pasien yang mengalami kesulitan berbicara dan komunikasi akibat Parkinson.",
-    isi: "<h2>Apa itu Terapi Wicara untuk Parkinson?</h2> <p>Terapi wicara adalah intervensi penting untuk pasien Parkinson yang mengalami kesulitan komunikasi. Penyakit Parkinson dapat memengaruhi otot-otot yang terlibat dalam berbicara, menyebabkan suara pelan, monoton, dan kurang jelas.</p><h3>Manfaat Terapi Wicara:</h3><ul> <li><strong>Meningkatkan Volume Suara:</strong> Teknik untuk berbicara lebih keras dan jelas.</li><li><strong>Memperbaiki Artikulasi:</strong> Latihan untuk meningkatkan kejelasan ucapan.</li><li><strong>Melatih Kontrol Pernapasan:</strong> Teknik pernapasan untuk mendukung produksi suara.</li><li><strong>Meningkatkan Ekspresi Wajah:</strong> Latihan untuk mempertahankan ekspresi wajah yang penting dalam komunikasi.</li></ul><p>Terapi wicara dapat secara signifikan meningkatkan kualitas hidup pasien Parkinson dengan membantu mereka mempertahankan kemampuan berkomunikasi secara efektif.</p>",
-    likes: 12,
-    dislikes: 2,
-  },
-  {
-    id: "3",
-    image: "psychoteraphy.jpg",
-    title: "Psikoterapi",
-    description:
-      "Dukungan mental oleh psikolog untuk mengatasi dampak psikologis dari penyakit Parkinson.",
-    isi: "<h2>Psikoterapi untuk Pasien Parkinson</h2> <p>Psikoterapi merupakan komponen penting dalam perawatan holistik pasien Parkinson. Diagnosis Parkinson dapat menimbulkan berbagai tantangan emosional dan psikologis yang perlu ditangani.</p><h3>Manfaat Psikoterapi:</h3><ul> <li><strong>Mengatasi Depresi dan Kecemasan:</strong> Kondisi yang sering menyertai Parkinson.</li><li><strong>Penyesuaian Terhadap Diagnosis:</strong> Membantu pasien menerima dan beradaptasi dengan kondisi mereka.</li><li><strong>Strategi Koping:</strong> Mengembangkan cara-cara sehat untuk menghadapi tantangan penyakit.</li><li><strong>Dukungan Keluarga:</strong> Melibatkan keluarga dalam proses terapi untuk meningkatkan sistem dukungan.</li></ul><p>Psikoterapi dapat dilakukan secara individual, kelompok, atau melibatkan keluarga, tergantung pada kebutuhan pasien.</p>",
-    likes: 12,
-    dislikes: 2,
-  },
-  // Operasi Articles
-  {
-    id: "4",
-    image: "DBS.jpg",
-    title: "Deep Brain Stimulation (DBS)",
-    description:
-      "Prosedur bedah yang melibatkan pemasangan elektroda ke area otak tertentu untuk mengurangi gejala Parkinson.",
-    isi: "<h2>Deep Brain Stimulation (DBS) untuk Parkinson</h2> <p>Deep Brain Stimulation adalah prosedur bedah canggih yang melibatkan pemasangan elektroda ke area otak tertentu untuk mengirimkan impuls listrik yang dapat mengurangi gejala Parkinson.</p><h3>Cara Kerja DBS:</h3><p>Elektroda ditempatkan di area otak yang terlibat dalam kontrol gerakan. Elektroda ini terhubung ke generator pulsa yang diimplan di bawah kulit di dada. Sistem ini mengirimkan stimulasi listrik ke otak untuk memblokir sinyal yang menyebabkan gejala motorik Parkinson.</p><h3>Manfaat DBS:</h3><ul> <li><strong>Pengurangan Tremor:</strong> Dapat secara signifikan mengurangi getaran.</li><li><strong>Perbaikan Kekakuan:</strong> Mengurangi kekakuan otot.</li><li><strong>Pengurangan Diskinesia:</strong> Mengurangi gerakan tidak terkontrol yang sering merupakan efek samping dari obat Parkinson.</li><li><strong>Pengurangan Dosis Obat:</strong> Memungkinkan pengurangan dosis obat Parkinson.</li></ul><p>DBS tidak menyembuhkan Parkinson, tetapi dapat secara signifikan meningkatkan kualitas hidup pasien dengan mengendalikan gejala.</p>",
-    likes: 14,
-    dislikes: 7,
-  },
-  {
-    id: "5",
-    image: "gamma-knife-surgery.jpg",
-    title: "Operasi Otak Gamma",
-    description:
-      "Teknik operasi menggunakan sinar gamma untuk menargetkan area otak tertentu.",
-    isi: "<h2>Operasi Otak Gamma untuk Parkinson</h2> <p>Operasi Otak Gamma, juga dikenal sebagai Gamma Knife Surgery, adalah prosedur non-invasif yang menggunakan sinar gamma yang sangat terfokus untuk menargetkan area otak tertentu yang terlibat dalam penyakit Parkinson.</p><h3>Cara Kerja Operasi Gamma:</h3><p>Tidak seperti operasi tradisional, Gamma Knife tidak melibatkan sayatan. Sebaliknya, ratusan sinar gamma diarahkan secara tepat ke area target di otak. Radiasi ini dapat memodifikasi jaringan otak yang menyebabkan gejala Parkinson.</p><h3>Manfaat Operasi Gamma:</h3><ul> <li><strong>Non-invasif:</strong> Tidak memerlukan pembedahan terbuka.</li><li><strong>Rawat Jalan:</strong> Biasanya dilakukan sebagai prosedur rawat jalan.</li><li><strong>Pemulihan Cepat:</strong> Waktu pemulihan yang lebih singkat dibandingkan dengan operasi tradisional.</li><li><strong>Pengurangan Tremor:</strong> Terutama efektif untuk tremor yang terkait dengan Parkinson.</li></ul><p>Operasi Gamma biasanya dipertimbangkan untuk pasien yang tidak merespons dengan baik terhadap pengobatan atau yang bukan kandidat yang baik untuk DBS.</p>",
-    likes: 10,
-    dislikes: 3,
-  },
-];
+import { allArticles, Article } from "~/data/articles";
 
 interface DetailPageProps {
   articleId?: string;
@@ -77,13 +11,9 @@ export function DetailPage({ articleId }: DetailPageProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulasi loading data
     setLoading(true);
-    
     try {
-      // Cari artikel berdasarkan ID
       const foundArticle = allArticles.find(art => art.id === articleId);
-      
       if (foundArticle) {
         setArticle(foundArticle);
         setError(null);
@@ -116,36 +46,53 @@ export function DetailPage({ articleId }: DetailPageProps) {
     );
   }
 
+  // Estimasi waktu baca (misal: 200 kata/menit)
+  const wordCount = article.isi.replace(/<[^>]+>/g, '').split(/\s+/).length;
+  const readTime = Math.max(1, Math.round(wordCount / 200));
+
   return (
-    <div className="pt-18 bg-white pb-16 min-h-screen">
+    <div className="bg-white min-h-screen flex flex-col">
       {/* Header dengan background gradient */}
       <div className="w-full bg-gradient-to-r from-orange-700 via-orange-500 to-yellow-400 py-10">
         <div className="container mx-auto mt-16 px-6">
-          <h1 className="mb-2 text-4xl font-bold text-white">{article.title}</h1>
+          <h1 className="mb-2 text-4xl font-bold text-white">Artikel</h1>
+          <div className="flex items-center text-lg text-white space-x-2">
+            <button className="hover:text-yellow-200 focus:outline-none" onClick={() => window.history.back()} type="button" > Artikel </button>
+            <span>&gt;</span>
+            <span>{article.title}</span>
+          </div>
         </div>
       </div>
-
-      <div className="container mx-auto px-6 py-8">
+      
+      <div className="container mx-auto px-6 py-8 flex-1">
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">{article.title} untuk Penyakit Parkinson</h2>
+        <div className="mb-8 border-t border-b py-4 flex  items-center">
+          <div className="text-sm text-gray-500 ml-4">{readTime} menit membaca</div>
+        </div>
         {/* Gambar Artikel */}
-        <img
-          src={`/${article.image}`}
-          alt={article.title}
-          className="mb-8 h-[400px] w-full rounded-lg object-cover"
-        />
+        <div className="flex justify-center">
+          <img
+            src={`/${article.image}`}
+            alt={article.title}
+            className="mb-8 max-w-[1000px] h-full w-full object-cover rounded-lg"
+          />
+        </div>
 
         {/* Konten Artikel */}
-        <div className="prose prose-lg max-w-none"> 
+        <div className="prose prose-lg max-w-none mb-8">
           <div dangerouslySetInnerHTML={{ __html: article.isi }} />
         </div>
 
         {/* Interaksi */}
-        <div className="mt-8 flex items-center space-x-4">
-          <button className="flex items-center space-x-2 rounded-lg bg-green-100 px-4 py-2 text-green-600 hover:bg-green-200">
-            <span>👍</span>
+        <div className="flex items-center border-t border-b gap-1 mt-4 mb-8 py-4">
+          <p className=" ml-3">Apakah artikel ini membantu ?</p>
+          <button className="flex items-center space-x-2 rounded-lg  px-4 py-2 ">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M7 11V19C7 19.2652 6.89464 19.5196 6.70711 19.7071C6.51957 19.8946 6.26522 20 6 20H4C3.73478 20 3.48043 19.8946 3.29289 19.7071C3.10536 19.5196 3 19.2652 3 19V12C3 11.7348 3.10536 11.4804 3.29289 11.2929C3.48043 11.1054 3.73478 11 4 11H7ZM7 11C8.06087 11 9.07828 10.5786 9.82843 9.82843C10.5786 9.07828 11 8.06087 11 7V6C11 5.46957 11.2107 4.96086 11.5858 4.58579C11.9609 4.21071 12.4696 4 13 4C13.5304 4 14.0391 4.21071 14.4142 4.58579C14.7893 4.96086 15 5.46957 15 6V11H18C18.5304 11 19.0391 11.2107 19.4142 11.5858C19.7893 11.9609 20 12.4696 20 13L19 18C18.8562 18.6135 18.5834 19.1402 18.2227 19.501C17.8619 19.8617 17.4328 20.0368 17 20H10C9.20435 20 8.44129 19.6839 7.87868 19.1213C7.31607 18.5587 7 17.7956 7 17" stroke="#404040" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </svg>
+
             <span>{article.likes}</span>
           </button>
-          <button className="flex items-center space-x-2 rounded-lg bg-red-100 px-4 py-2 text-red-600 hover:bg-red-200">
-            <span>👎</span>
+          <button className="flex items-center space-x-2 rounded-lg px-4 py-2 ">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M7 13.0009V5.00091C7 4.73569 6.89464 4.48134 6.70711 4.2938C6.51957 4.10627 6.26522 4.00091 6 4.00091H4C3.73478 4.00091 3.48043 4.10627 3.29289 4.2938C3.10536 4.48134 3 4.73569 3 5.00091V12.0009C3 12.2661 3.10536 12.5205 3.29289 12.708C3.48043 12.8956 3.73478 13.0009 4 13.0009H7ZM7 13.0009C8.06087 13.0009 9.07828 13.4223 9.82843 14.1725C10.5786 14.9226 11 15.94 11 17.0009V18.0009C11 18.5313 11.2107 19.04 11.5858 19.4151C11.9609 19.7902 12.4696 20.0009 13 20.0009C13.5304 20.0009 14.0391 19.7902 14.4142 19.4151C14.7893 19.04 15 18.5313 15 18.0009V13.0009H18C18.5304 13.0009 19.0391 12.7902 19.4142 12.4151C19.7893 12.04 20 11.5313 20 11.0009L19 6.00091C18.8562 5.38743 18.5834 4.86067 18.2227 4.49994C17.8619 4.13922 17.4328 3.96409 17 4.00091H10C9.20435 4.00091 8.44129 4.31698 7.87868 4.87959C7.31607 5.4422 7 6.20526 7 7.00091" stroke="#404040" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </svg>
             <span>{article.dislikes}</span>
           </button>
         </div>

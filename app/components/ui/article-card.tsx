@@ -12,7 +12,7 @@ interface ArticleCardProps {
 
 export function ArticleCard({ id, image, title, description, likes = 0, dislikes = 0 }: ArticleCardProps) {
   return (
-    <Link to={`/artikel/${id}`} className="block">
+    <Link to={`/detailpage/${id}`} className="block">
       <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-transparent hover:border-blue-300 transition-all duration-300 hover:shadow-md">
         <img 
           src={image} 
