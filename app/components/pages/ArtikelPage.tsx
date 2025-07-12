@@ -10,7 +10,8 @@ export function ArtikelPage() {
       title: "Fisioterapi",
       description:
         "Terapi untuk mengatasi kekakuan otot dan sendi, meningkatkan kemampuan gerak dan keseimbangan.",
-      likes: 12,
+      isi: "<h2>Apa itu Fisioterapi?</h2> <p>Fisioterapi adalah komponen penting dalam mengelola penyakit Parkinson. Ini melibatkan metode fisik untuk meningkatkan gerakan, fungsi, dan kesejahteraan secara keseluruhan. Bagi pasien Parkinson, fisioterapi bertujuan untuk mempertahankan dan meningkatkan mobilitas, keseimbangan, dan kualitas hidup.</p><h3>Teknik Utama Fisioterapi untuk Parkinson:</h3><ul> <li><strong>Latihan Berjalan:</strong> Meningkatkan pola berjalan dan mengurangi risiko jatuh.</li><li><strong>Latihan Keseimbangan:</strong> Meningkatkan stabilitas dan mencegah jatuh.</li><li><strong>Peregangan:</strong> Mempertahankan fleksibilitas dan mengurangi kekakuan otot.</li><li><strong>Latihan Kekuatan:</strong> Membangun kekuatan otot dan memperbaiki postur.</li> <li><strong>Latihan Aerobik:</strong> Meningkatkan kesehatan kardiovaskular dan tingkat energi.</li><li><strong>Latihan Motorik Halus:</strong> Meningkatkan ketangkasan tangan untuk tugas sehari-hari.</li></ul><h3>Proses Fisioterapi:</h3><ol><li><strong>Penilaian:</strong> Mengevaluasi kondisi dan kebutuhan spesifik pasien.</li><li><strong>Penetapan Tujuan:</strong> Menetapkan tujuan yang realistis dan dapat dicapai.</li><li><strong>Rencana Perawatan:</strong> Merancang program terapi yang dipersonalisasi.</li><li><strong>Sesi Rutin:</strong> Menerapkan latihan dan teknik di bawah bimbingan.</li><li><strong>Program Latihan di Rumah:</strong> Memberikan latihan untuk praktik berkelanjutan di rumah.</li><li><strong>Pemantauan Kemajuan:</strong> Evaluasi rutin untuk menyesuaikan rencana perawatan sesuai kebutuhan.</li></ol><p>Fisioterapi untuk Parkinson adalah proses berkelanjutan yang sering membutuhkan komitmen jangka panjang. Ini paling efektif ketika dimulai sejak dini dan dipertahankan secara konsisten sepanjang perjalanan penyakit.</p>",
+        likes: 12,
       dislikes: 2,
     },
     {
@@ -19,6 +20,7 @@ export function ArtikelPage() {
       title: "Terapi Wicara",
       description:
         "Membantu pasien yang mengalami kesulitan berbicara dan komunikasi akibat Parkinson.",
+        isi: "<h2>Apa itu Fisioterapi?</h2> <p>Fisioterapi adalah komponen penting dalam mengelola penyakit Parkinson. Ini melibatkan metode fisik untuk meningkatkan gerakan, fungsi, dan kesejahteraan secara keseluruhan. Bagi pasien Parkinson, fisioterapi bertujuan untuk mempertahankan dan meningkatkan mobilitas, keseimbangan, dan kualitas hidup.</p><h3>Teknik Utama Fisioterapi untuk Parkinson:</h3><ul> <li><strong>Latihan Berjalan:</strong> Meningkatkan pola berjalan dan mengurangi risiko jatuh.</li><li><strong>Latihan Keseimbangan:</strong> Meningkatkan stabilitas dan mencegah jatuh.</li><li><strong>Peregangan:</strong> Mempertahankan fleksibilitas dan mengurangi kekakuan otot.</li><li><strong>Latihan Kekuatan:</strong> Membangun kekuatan otot dan memperbaiki postur.</li> <li><strong>Latihan Aerobik:</strong> Meningkatkan kesehatan kardiovaskular dan tingkat energi.</li><li><strong>Latihan Motorik Halus:</strong> Meningkatkan ketangkasan tangan untuk tugas sehari-hari.</li></ul><h3>Proses Fisioterapi:</h3><ol><li><strong>Penilaian:</strong> Mengevaluasi kondisi dan kebutuhan spesifik pasien.</li><li><strong>Penetapan Tujuan:</strong> Menetapkan tujuan yang realistis dan dapat dicapai.</li><li><strong>Rencana Perawatan:</strong> Merancang program terapi yang dipersonalisasi.</li><li><strong>Sesi Rutin:</strong> Menerapkan latihan dan teknik di bawah bimbingan.</li><li><strong>Program Latihan di Rumah:</strong> Memberikan latihan untuk praktik berkelanjutan di rumah.</li><li><strong>Pemantauan Kemajuan:</strong> Evaluasi rutin untuk menyesuaikan rencana perawatan sesuai kebutuhan.</li></ol><p>Fisioterapi untuk Parkinson adalah proses berkelanjutan yang sering membutuhkan komitmen jangka panjang. Ini paling efektif ketika dimulai sejak dini dan dipertahankan secara konsisten sepanjang perjalanan penyakit.</p>",
       likes: 12,
       dislikes: 2,
     },
@@ -28,6 +30,7 @@ export function ArtikelPage() {
       title: "Psikoterapi",
       description:
         "Dukungan mental oleh psikolog untuk mengatasi dampak psikologis dari penyakit Parkinson.",
+        isi: "<h2>Apa itu Fisioterapi?</h2> <p>Fisioterapi adalah komponen penting dalam mengelola penyakit Parkinson. Ini melibatkan metode fisik untuk meningkatkan gerakan, fungsi, dan kesejahteraan secara keseluruhan. Bagi pasien Parkinson, fisioterapi bertujuan untuk mempertahankan dan meningkatkan mobilitas, keseimbangan, dan kualitas hidup.</p><h3>Teknik Utama Fisioterapi untuk Parkinson:</h3><ul> <li><strong>Latihan Berjalan:</strong> Meningkatkan pola berjalan dan mengurangi risiko jatuh.</li><li><strong>Latihan Keseimbangan:</strong> Meningkatkan stabilitas dan mencegah jatuh.</li><li><strong>Peregangan:</strong> Mempertahankan fleksibilitas dan mengurangi kekakuan otot.</li><li><strong>Latihan Kekuatan:</strong> Membangun kekuatan otot dan memperbaiki postur.</li> <li><strong>Latihan Aerobik:</strong> Meningkatkan kesehatan kardiovaskular dan tingkat energi.</li><li><strong>Latihan Motorik Halus:</strong> Meningkatkan ketangkasan tangan untuk tugas sehari-hari.</li></ul><h3>Proses Fisioterapi:</h3><ol><li><strong>Penilaian:</strong> Mengevaluasi kondisi dan kebutuhan spesifik pasien.</li><li><strong>Penetapan Tujuan:</strong> Menetapkan tujuan yang realistis dan dapat dicapai.</li><li><strong>Rencana Perawatan:</strong> Merancang program terapi yang dipersonalisasi.</li><li><strong>Sesi Rutin:</strong> Menerapkan latihan dan teknik di bawah bimbingan.</li><li><strong>Program Latihan di Rumah:</strong> Memberikan latihan untuk praktik berkelanjutan di rumah.</li><li><strong>Pemantauan Kemajuan:</strong> Evaluasi rutin untuk menyesuaikan rencana perawatan sesuai kebutuhan.</li></ol><p>Fisioterapi untuk Parkinson adalah proses berkelanjutan yang sering membutuhkan komitmen jangka panjang. Ini paling efektif ketika dimulai sejak dini dan dipertahankan secara konsisten sepanjang perjalanan penyakit.</p>",
       likes: 12,
       dislikes: 2,
     },
@@ -41,6 +44,7 @@ export function ArtikelPage() {
       title: "Deep Brain Stimulation (DBS)",
       description:
         "Prosedur bedah yang melibatkan pemasangan elektroda ke area otak tertentu untuk mengurangi gejala Parkinson.",
+        isi: "<h2>Apa itu Fisioterapi?</h2> <p>Fisioterapi adalah komponen penting dalam mengelola penyakit Parkinson. Ini melibatkan metode fisik untuk meningkatkan gerakan, fungsi, dan kesejahteraan secara keseluruhan. Bagi pasien Parkinson, fisioterapi bertujuan untuk mempertahankan dan meningkatkan mobilitas, keseimbangan, dan kualitas hidup.</p><h3>Teknik Utama Fisioterapi untuk Parkinson:</h3><ul> <li><strong>Latihan Berjalan:</strong> Meningkatkan pola berjalan dan mengurangi risiko jatuh.</li><li><strong>Latihan Keseimbangan:</strong> Meningkatkan stabilitas dan mencegah jatuh.</li><li><strong>Peregangan:</strong> Mempertahankan fleksibilitas dan mengurangi kekakuan otot.</li><li><strong>Latihan Kekuatan:</strong> Membangun kekuatan otot dan memperbaiki postur.</li> <li><strong>Latihan Aerobik:</strong> Meningkatkan kesehatan kardiovaskular dan tingkat energi.</li><li><strong>Latihan Motorik Halus:</strong> Meningkatkan ketangkasan tangan untuk tugas sehari-hari.</li></ul><h3>Proses Fisioterapi:</h3><ol><li><strong>Penilaian:</strong> Mengevaluasi kondisi dan kebutuhan spesifik pasien.</li><li><strong>Penetapan Tujuan:</strong> Menetapkan tujuan yang realistis dan dapat dicapai.</li><li><strong>Rencana Perawatan:</strong> Merancang program terapi yang dipersonalisasi.</li><li><strong>Sesi Rutin:</strong> Menerapkan latihan dan teknik di bawah bimbingan.</li><li><strong>Program Latihan di Rumah:</strong> Memberikan latihan untuk praktik berkelanjutan di rumah.</li><li><strong>Pemantauan Kemajuan:</strong> Evaluasi rutin untuk menyesuaikan rencana perawatan sesuai kebutuhan.</li></ol><p>Fisioterapi untuk Parkinson adalah proses berkelanjutan yang sering membutuhkan komitmen jangka panjang. Ini paling efektif ketika dimulai sejak dini dan dipertahankan secara konsisten sepanjang perjalanan penyakit.</p>",
       likes: 14,
       dislikes: 7,
     },
@@ -50,6 +54,7 @@ export function ArtikelPage() {
       title: "Operasi Otak Gamma",
       description:
         "Teknik operasi menggunakan sinar gamma untuk menargetkan area otak tertentu.",
+        isi: "<h2>Apa itu Fisioterapi?</h2> <p>Fisioterapi adalah komponen penting dalam mengelola penyakit Parkinson. Ini melibatkan metode fisik untuk meningkatkan gerakan, fungsi, dan kesejahteraan secara keseluruhan. Bagi pasien Parkinson, fisioterapi bertujuan untuk mempertahankan dan meningkatkan mobilitas, keseimbangan, dan kualitas hidup.</p><h3>Teknik Utama Fisioterapi untuk Parkinson:</h3><ul> <li><strong>Latihan Berjalan:</strong> Meningkatkan pola berjalan dan mengurangi risiko jatuh.</li><li><strong>Latihan Keseimbangan:</strong> Meningkatkan stabilitas dan mencegah jatuh.</li><li><strong>Peregangan:</strong> Mempertahankan fleksibilitas dan mengurangi kekakuan otot.</li><li><strong>Latihan Kekuatan:</strong> Membangun kekuatan otot dan memperbaiki postur.</li> <li><strong>Latihan Aerobik:</strong> Meningkatkan kesehatan kardiovaskular dan tingkat energi.</li><li><strong>Latihan Motorik Halus:</strong> Meningkatkan ketangkasan tangan untuk tugas sehari-hari.</li></ul><h3>Proses Fisioterapi:</h3><ol><li><strong>Penilaian:</strong> Mengevaluasi kondisi dan kebutuhan spesifik pasien.</li><li><strong>Penetapan Tujuan:</strong> Menetapkan tujuan yang realistis dan dapat dicapai.</li><li><strong>Rencana Perawatan:</strong> Merancang program terapi yang dipersonalisasi.</li><li><strong>Sesi Rutin:</strong> Menerapkan latihan dan teknik di bawah bimbingan.</li><li><strong>Program Latihan di Rumah:</strong> Memberikan latihan untuk praktik berkelanjutan di rumah.</li><li><strong>Pemantauan Kemajuan:</strong> Evaluasi rutin untuk menyesuaikan rencana perawatan sesuai kebutuhan.</li></ol><p>Fisioterapi untuk Parkinson adalah proses berkelanjutan yang sering membutuhkan komitmen jangka panjang. Ini paling efektif ketika dimulai sejak dini dan dipertahankan secara konsisten sepanjang perjalanan penyakit.</p>",
       likes: 10,
       dislikes: 3,
     },
@@ -89,6 +94,7 @@ export function ArtikelPage() {
             {terapiArticles.map((article) => (
               <ArticleCard
                 key={article.id}
+                id={article.id}
                 image={article.image}
                 title={article.title}
                 description={article.description}
@@ -111,6 +117,7 @@ export function ArtikelPage() {
             {operasiArticles.map((article) => (
               <ArticleCard
                 key={article.id}
+                id={article.id}
                 image={article.image}
                 title={article.title}
                 description={article.description}

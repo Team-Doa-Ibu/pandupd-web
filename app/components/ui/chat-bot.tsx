@@ -6,7 +6,7 @@ export function ChatBot() {
   const [chatHistory, setChatHistory] = useState([
     {
       type: "system",
-      content: "NIGGER adalah alat skrining awal yang dirancang untuk membantu mendeteksi potensi gejala penyakit Parkinson. Alat ini tidak dimaksudkan untuk menggantikan konsultasi, pemeriksaan, atau diagnosis dari tenaga medis profesional.",
+      content: "Pandu-PD AI adalah alat skrining awal yang dirancang untuk membantu mendeteksi potensi gejala penyakit Parkinson. Alat ini tidak dimaksudkan untuk menggantikan konsultasi, pemeriksaan, atau diagnosis dari tenaga medis profesional.",
     },
   ]);
 
@@ -42,7 +42,7 @@ export function ChatBot() {
       <button
         onClick={toggleChat}
         className="fixed bottom-6 right-6 w-14 h-14 flex items-center justify-center transition-all z-50 border-none bg-transparent p-0"
-        aria-label="Chat dengan NIGGER AI"
+        aria-label="Chat dengan Pandu-PD AI"
       >
         <img 
           src="/icon-chatbot.png" 
@@ -58,7 +58,7 @@ export function ChatBot() {
           <div className="bg-white p-4 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img src="/logo.png" alt="Logo" className="w-8 h-8" />
-              <span className="font-bold text-gray-800">NIGGER AI</span>
+              <span className="font-bold text-gray-800">Pandu-PD AI</span>
             </div>
             <button 
               onClick={toggleChat}
@@ -88,7 +88,7 @@ export function ChatBot() {
                   >
                     {chat.type === "system" && index === 0 ? (
                       <div>
-                        <div className="font-bold mb-1">Jelaskan apa itu NIGGER?</div>
+                        <div className="font-bold mb-1">Jelaskan apa itu Pandu-PD AI?</div>
                         <p>{chat.content}</p>
                       </div>
                     ) : (

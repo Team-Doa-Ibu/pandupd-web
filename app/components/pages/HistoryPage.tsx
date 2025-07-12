@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { TestTypeBadge, ConfidenceScoreBadge } from '../ui/Badge';
 
 // Tipe data untuk item riwayat
 interface HistoryItem {
@@ -9,80 +10,6 @@ interface HistoryItem {
   result: string;
   score?: number;
 }
-
-// Komponen Badge Jenis Tes
-const TestTypeBadge = ({ type }: { type: string }) => {
-  if (type === 'Gambar') {
-    return (
-      <span 
-        className="inline-block px-3 py-1 text-xs font-medium rounded-full border"
-        style={{ 
-          backgroundColor: '#FFEDD5', // orange-50
-          borderColor: '#FB923C',     // orange-400
-          color: '#C2410C'            // orange-700
-        }}
-      >
-        {type}
-      </span>
-    );
-  } else if (type === 'Suara') {
-    return (
-      <span 
-        className="inline-block px-3 py-1 text-xs font-medium rounded-full border"
-        style={{ 
-          backgroundColor: '#DBEAFE', // blue-100
-          borderColor: '#60A5FA',     // blue-400
-          color: '#1D4ED8'            // blue-700
-        }}
-      >
-        {type}
-      </span>
-    );
-  } else {
-    return (
-      <span className="inline-block px-3 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-50 text-gray-700">
-        {type}
-      </span>
-    );
-  }
-};
-
-// Komponen Badge Hasil
-const ResultBadge = ({ result }: { result: string }) => {
-  if (result === 'Sehat') {
-    return (
-      <span 
-        className="inline-block px-3 py-1 text-xs font-medium rounded-full border"
-        style={{ 
-          backgroundColor: '#DCFCE7', // green-100
-          borderColor: '#4ADE80',     // green-400
-          color: '#15803D'            // green-700
-        }}
-      >
-        {result}
-      </span>
-    );
-  } else if (result === 'Parkinson') {
-    return (
-      <span 
-        className="inline-block px-3 py-1 text-xs font-medium rounded-full border"
-        style={{ 
-          backgroundColor: '#FEE2E2', // red-100
-          borderColor: '#F87171',     // red-400
-          color: '#B91C1C'            // red-700
-        }}
-      >
-        {result}
-      </span>
-    );
-  } else {
-    return (
-      <span className="inline-block px-3 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-50 text-gray-700">
-        {result}
-      </span>
-    );
-  }
-};
 
 // Komponen Button Buka
 const OpenButton = ({ onClick }: { onClick?: () => void }) => {
@@ -241,7 +168,7 @@ export default function HistoryPage({ initialData = [] }: HistoryPageProps) {
                     <TestTypeBadge type={item.testType} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <ResultBadge result={item.result} />
+                    <ConfidenceScoreBadge score={item.score || 0} result={item.result} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm border-b border-gray-200">
                     <div className="flex justify-end items-center space-x-2">
