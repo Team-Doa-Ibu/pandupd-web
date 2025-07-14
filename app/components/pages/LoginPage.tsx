@@ -28,7 +28,7 @@ export default function LoginPage() {
         
         {/* Register Link */}
         <p className="text-center text-sm text-gray-600 mb-6">
-          Belum punya akun? <Link to="/Register" className="text-blue-500 hover:underline">Daftar</Link>
+          Belum punya akun? <Link to="/register" className="text-blue-500 hover:underline">Daftar</Link>
         </p>
         
         {/* Login Form */}

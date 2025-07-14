@@ -1,5 +1,3 @@
-"use client";
-
 import {
   IconBook2,
   IconInfoCircle,
@@ -249,7 +247,7 @@ const DeteksiPage = () => {
             {/* Header */}
             <div className="text-center">
               <h2 className="text-2xl font-bold text-neutral-800">
-                Kirim Hasil Deteksi
+                Kirim Data Skrining
               </h2>
               <p className="mt-2 text-neutral-600">
                 Pastikan Anda telah menyelesaikan minimal satu metode deteksi
@@ -381,7 +379,7 @@ const DeteksiPage = () => {
                         size={24}
                         className="transition-transform duration-300 group-hover:translate-x-1 group-hover:rotate-12"
                       />
-                      <span className="relative">Kirim Hasil Deteksi</span>
+                      <span className="relative">Submit</span>
                     </>
                   )}
                 </div>
