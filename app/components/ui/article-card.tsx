@@ -44,4 +44,4 @@ export function ArticleCard({ id, image, title, description, likes = 0, dislikes
       </div>
     </Link>
   );
-} 
+}

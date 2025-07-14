@@ -5,14 +5,14 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const currentPath = location.pathname;
-  
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-  
+
   return (
     <>
-      <nav className="fixed left-1/2 top-6 z-50 box-border flex w-[95%] max-w-screen-xl sm:max-w-6xl -translate-x-1/2 items-center justify-between rounded-full border border-neutral-300 bg-white px-3 py-2 shadow-md sm:p-2">
+      <nav className="fixed left-1/2 top-6 z-50 box-border flex w-[95%] max-w-screen-xl -translate-x-1/2 items-center justify-between rounded-full border border-neutral-300 bg-white px-3 py-2 shadow-md sm:max-w-6xl sm:p-2">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-full" />
@@ -75,7 +75,7 @@ export function Navbar() {
 
         {/* Login Button */}
         <div className="hidden md:block">
-          <a href="/Login">
+          <a href="/login">
             <button className="rounded-full bg-blue-500 px-5 py-1.5 font-semibold text-white shadow-inner shadow-white/50 transition hover:bg-blue-600">
               Masuk
             </button>
@@ -116,7 +116,7 @@ export function Navbar() {
       {/* Mobile Menu Dropdown */}
       {isMenuOpen && (
         <div className="fixed left-1/2 top-20 z-40 mt-2 w-[95%] max-w-screen-xl -translate-x-1/2 rounded-xl border border-neutral-300 bg-white py-4 shadow-lg md:hidden">
-          <ul className="flex flex-col font-bold text-sm">
+          <ul className="flex flex-col text-sm font-bold">
             <li>
               <a
                 href="/"
@@ -151,8 +151,8 @@ export function Navbar() {
             </li>
             <li className="mt-2 border-t border-gray-100 pt-2">
               <div className="px-6 py-2">
-                <a href="/Login">
-                  <button className="w-full shadow-inner shadow-white/50 rounded-full bg-blue-500 px-5 py-2 font-semibold text-white transition hover:bg-blue-600">
+                <a href="/login">
+                  <button className="w-full rounded-full bg-blue-500 px-5 py-2 font-semibold text-white shadow-inner shadow-white/50 transition hover:bg-blue-600">
                     Masuk
                   </button>
                 </a>

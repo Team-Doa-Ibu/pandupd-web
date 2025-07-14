@@ -4,18 +4,20 @@ import { NavMenu } from "./footer-menu";
 export const Footer = ({ text = "PANDU‑PD" }) => {
   return (
     <div className="w-full bg-neutral-800">
-      <div className="flex flex-col w-full max-w-screen-xl mx-auto items-start gap-8 py-10 px-4 md:px-8">
-        <div className="flex flex-col md:flex-row flex-wrap md:items-start items-center justify-between w-full gap-8">
-          <div className="flex flex-col w-full md:w-auto max-w-[319px] items-start gap-4">
-            <div className="font-bold text-white text-3xl md:text-4xl">{text}</div>
-            <p className="text-white text-base text-left">
+      <div className="mx-auto flex w-full max-w-screen-xl flex-col items-start gap-8 px-4 py-10 md:px-8">
+        <div className="flex w-full flex-col flex-wrap justify-between gap-8 md:flex-row md:items-start">
+          <div className="flex w-full flex-col gap-4 md:w-auto">
+            <div className="text-3xl font-bold text-white md:text-4xl">
+              {text}
+            </div>
+            <p className="text-left text-base text-white">
               Memberdayakan melalui edukasi dan deteksi dini penyakit Parkinson.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row flex-1 flex-wrap gap-8 justify-end w-full md:w-auto items-start">
-            <div className="flex flex-col gap-4 min-w-[150px]">
-              <div className="font-bold text-white text-base">Tautan Cepat</div>
+          <div className="flex w-full flex-col flex-wrap items-start gap-8 sm:flex-row md:w-auto md:justify-end">
+            <div className="flex min-w-[150px] flex-col gap-4">
+              <div className="text-base font-bold text-white">Tautan Cepat</div>
               <div className="flex flex-col gap-2">
                 <NavMenu text="Cek Sekarang" type="footer" />
                 <NavMenu text="Terapi" type="footer" />
@@ -23,8 +25,8 @@ export const Footer = ({ text = "PANDU‑PD" }) => {
                 <NavMenu text="Riwayat" type="footer" />
               </div>
             </div>
-            <div className="flex flex-col gap-4 min-w-[150px]">
-              <div className="font-bold text-white text-base">
+            <div className="flex min-w-[150px] flex-col gap-4">
+              <div className="text-base font-bold text-white">
                 Alat Diagnosis
               </div>
               <div className="flex flex-col gap-2">
@@ -32,8 +34,8 @@ export const Footer = ({ text = "PANDU‑PD" }) => {
                 <NavMenu text="Analisis Pola Suara" type="footer" />
               </div>
             </div>
-            <div className="flex flex-col gap-4 min-w-[150px]">
-              <div className="font-bold text-white text-base">Informasi</div>
+            <div className="flex min-w-[150px] flex-col gap-4">
+              <div className="text-base font-bold text-white">Informasi</div>
               <div className="flex flex-col gap-2">
                 <NavMenu text="Tentang Kami" type="footer" />
                 <NavMenu text="Hubungi Kami" type="footer" />
@@ -42,13 +44,13 @@ export const Footer = ({ text = "PANDU‑PD" }) => {
           </div>
         </div>
 
-        <hr className="w-full border-t border-neutral-600 my-6" />
+        <hr className="my-6 w-full border-t border-neutral-600" />
 
-        <div className="flex flex-col md:flex-row items-center justify-between w-full gap-4">
-          <p className="font-medium text-white text-base text-center md:text-left">
+        <div className="flex w-full flex-col items-center justify-between gap-4 md:flex-row">
+          <p className="text-center text-base font-medium text-white md:text-left">
             © 2025 PANDU‑PD. Hak Cipta Dilindungi.
           </p>
-          <div className="flex flex-wrap items-center gap-3 justify-center md:justify-end w-full md:w-auto">
+          <div className="flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end">
             <NavMenu text="Kebijakan Privasi" type="footer" />
             <NavMenu text="Ketentuan Layanan" type="footer" />
             <NavMenu text="Kebijakan Cookie" type="footer" />
