@@ -1,85 +1,143 @@
-import React from 'react';
-import { Form, Link } from '@remix-run/react';
+import React, { useState } from "react";
+import { Link } from "@remix-run/react";
+import { supabase } from "../../data/supabaseClient";
+import { Alert } from "../ui/Alert";
 
 export default function LoginPage() {
-  // Anda bisa mengubah path background image ini sesuai kebutuhan
-  const backgroundImagePath = "login-bg.png"; 
+  const backgroundImagePath = "login-bg.png";
+  const [alert, setAlert] = useState<{
+    type: "success" | "error" | "warning" | "info";
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  } | null>(null);
+
+  // Handler untuk login Google
+  const handleGoogleLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/auth/callback",
+      },
+    });
+  };
+
+  // Handler login manual
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    // 1. Login ke Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    // 2. Jika error (salah email/password)
+    if (error || !data.user) {
+      setAlert({
+        type: "error",
+        title: "Login Gagal",
+        message: "Email atau password salah.",
+      });
+      return;
+    }
+
+    // 3. Jika user belum verifikasi email
+    if (!data.user.email_confirmed_at) {
+      setAlert({
+        type: "error",
+        title: "Login Gagal",
+        message:
+          "Akun belum diverifikasi. Silakan cek email Anda untuk verifikasi sebelum login.",
+      });
+      return;
+    }
+
+    // 4. Sukses, redirect ke /auth/callback
+    window.location.href = "/auth/callback";
+  };
 
   return (
-    <div 
-      className="min-h-screen w-full flex items-center justify-center bg-cover bg-center relative"
+    <div
+      className="relative flex min-h-screen w-full items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: `url('${backgroundImagePath}')` }}
     >
-      {/* Overlay untuk memastikan kartu login terlihat jelas */}
       <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-      
-      {/* Login Card */}
-      <div className="z-10 w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-        {/* Logo - Ganti path sesuai lokasi logo Anda */}
-        <div className="flex justify-center mb-6">
+      {alert && (
+        <Alert
+          type={alert.type}
+          title={alert.title}
+          message={alert.message}
+          show={!!alert}
+          onConfirm={alert.onConfirm}
+          onCancel={() => setAlert(null)}
+          confirmText={alert.onConfirm ? "OK" : undefined}
+          cancelText={!alert.onConfirm ? "Tutup" : undefined}
+        />
+      )}
+      <div className="z-10 w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
+        <div className="mb-6 flex justify-center">
           <div className="flex items-center">
-            {/* Ganti dengan path logo Anda */}
             <img src="logo.png" alt="" className="h-8" />
           </div>
         </div>
-        
-        {/* Heading */}
-        <h2 className="text-center text-2xl font-semibold text-gray-800 mb-1">Selamat Datang Kembali</h2>
-        
-        {/* Register Link */}
-        <p className="text-center text-sm text-gray-600 mb-6">
-          Belum punya akun? <Link to="/register" className="text-blue-500 hover:underline">Daftar</Link>
+        <h2 className="mb-1 text-center text-2xl font-semibold text-gray-800">
+          Selamat Datang Kembali
+        </h2>
+        <p className="mb-6 text-center text-sm text-gray-600">
+          Belum punya akun?{" "}
+          <Link to="/register" className="text-blue-500 hover:underline">
+            Daftar
+          </Link>
         </p>
-        
-        {/* Login Form */}
-        <Form method="post" className="space-y-4">
-          {/* Email Field */}
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="email" className="sr-only">Email</label>
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black" 
-              placeholder="Email" 
-              required 
+            <label htmlFor="email" className="sr-only">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Email"
+              required
             />
           </div>
-          {/* Password Field */}
           <div>
-            <label htmlFor="password" className="sr-only">Password</label>
-            <input 
-              type="password" 
-              id="password" 
-              name="password" 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black" 
-              placeholder="Password" 
-              required 
+            <label htmlFor="password" className="sr-only">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Password"
+              required
             />
           </div>
-          
-          {/* Login Button */}
-          <button 
-            type="submit" 
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          <button
+            type="submit"
+            className="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Masuk
           </button>
-        </Form>
-        
-        {/* Divider */}
-        <div className="flex items-center my-4">
+        </form>
+        <div className="my-4 flex items-center">
           <div className="flex-grow border-t border-gray-300"></div>
           <span className="px-4 text-sm text-gray-500">Atau</span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
-        
-        {/* Google Login Button */}
-        <button 
-          type="button" 
-          className="w-full flex items-center justify-center bg-white border border-gray-300 rounded-md py-2 px-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-black"
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+          <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

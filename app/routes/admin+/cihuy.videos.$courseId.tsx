@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import FormVideo from "./form-video";
 import FormCourse from "./form-course";
+import { ProtectedRoute } from "../../components/ProtectedRoute";
 
 // Tipe data untuk video (akan disediakan oleh backend)
 export type Video = {
@@ -44,127 +45,131 @@ export default function AdminVideos() {
 
   const clearSelection = () => setSelectedVideo(null);
   return (
-    <div className="mx-auto bg-neutral-50">
-      <div className="fixed w-full bg-blue-700/80 p-4 text-center font-mono text-2xl font-bold uppercase text-white backdrop-blur-lg">
-        Atmint datang
-      </div>
-      <div className="mb-4 flex flex-col items-start gap-2 px-4 pt-20">
-        <Link
-          to="/admin/cihuy"
-          className="diu flex gap-1 rounded-full border border-blue-300 bg-transparent px-4 py-2 text-blue-500 transition-colors hover:bg-blue-100"
-        >
-          <IconArrowLeft />{" "}
-          <span className="font-semibold">Atmin mau balik</span>
-        </Link>
-        <div className="mx-auto my-4 flex items-center justify-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500">
-            <IconVideo className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-neutral-700">
-            Kelola Video Course
-          </h1>
+    <ProtectedRoute adminOnly>
+      <div className="mx-auto bg-neutral-50">
+        <div className="fixed w-full bg-blue-700/80 p-4 text-center font-mono text-2xl font-bold uppercase text-white backdrop-blur-lg">
+          Atmint datang
         </div>
-
-        {/* Preview */}
-        <div className="mx-auto grid w-full grid-cols-1 gap-4 md:grid-cols-4">
-          {/* Card */}
-          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-            <img
-              src={course.thumbnail_url}
-              alt={course.name}
-              className="h-48 w-full object-cover"
-            />
-            <div className="flex flex-col gap-2 p-4">
-              <h2 className="text-xl font-bold text-neutral-700">
-                {course.name}
-              </h2>
-              <p className="w-fit rounded-full bg-blue-100 px-3 py-1 font-mono text-xs font-bold uppercase text-blue-700">
-                Total Video: {videos.length}
-              </p>
-              <p className="text-sm text-neutral-500">
-                {course.short_description}
-              </p>
-            </div>
-          </div>
-
-          {/* Penjelasan Tentang Course */}
-          <div className="col-span-1 rounded-xl border border-neutral-200 bg-white p-4 md:col-span-3">
-            <h1 className="mb-4 flex w-fit gap-1 rounded-full border border-amber-500 bg-amber-100 px-4 py-1 font-bold text-neutral-700">
-              <IconBook className="text-neutral-700" />
-              Penjelasan Tentang Course
-            </h1>
-            <div className="prose prose-neutral mt-2 max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {course.description}
-              </ReactMarkdown>
-            </div>
-          </div>
-        </div>
-        {isEditingCourse && (
-          <div className="mx-auto mt-6 w-full max-w-4xl rounded-xl border border-neutral-200 bg-white p-4">
-            <FormCourse
-              mode="edit"
-              initialData={{
-                name: course.name,
-                short_description: course.short_description,
-                description: course.description,
-                thumbnail_url: course.thumbnail_url,
-              }}
-            />
-          </div>
-        )}
-        <div className="mx-auto mt-4 flex gap-2">
-          <button
-            className="rounded-full bg-blue-500 px-4 py-2 font-bold text-white shadow-inner shadow-white/50 hover:bg-blue-600"
-            onClick={() => setIsEditingCourse(true)}
+        <div className="mb-4 flex flex-col items-start gap-2 px-4 pt-20">
+          <Link
+            to="/admin/cihuy"
+            className="diu flex gap-1 rounded-full border border-blue-300 bg-transparent px-4 py-2 text-blue-500 transition-colors hover:bg-blue-100"
           >
-            Edit Course Info
-          </button>
+            <IconArrowLeft />{" "}
+            <span className="font-semibold">Atmin mau balik</span>
+          </Link>
+          <div className="mx-auto my-4 flex items-center justify-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500">
+              <IconVideo className="text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-neutral-700">
+              Kelola Video Course
+            </h1>
+          </div>
 
-          <button className="rounded-full bg-red-500 px-4 py-2 font-bold text-white shadow-inner shadow-white/50 hover:bg-red-600">
-            Hapus Course
-          </button>
+          {/* Preview */}
+          <div className="mx-auto grid w-full grid-cols-1 gap-4 md:grid-cols-4">
+            {/* Card */}
+            <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+              <img
+                src={course.thumbnail_url}
+                alt={course.name}
+                className="h-48 w-full object-cover"
+              />
+              <div className="flex flex-col gap-2 p-4">
+                <h2 className="text-xl font-bold text-neutral-700">
+                  {course.name}
+                </h2>
+                <p className="w-fit rounded-full bg-blue-100 px-3 py-1 font-mono text-xs font-bold uppercase text-blue-700">
+                  Total Video: {videos.length}
+                </p>
+                <p className="text-sm text-neutral-500">
+                  {course.short_description}
+                </p>
+              </div>
+            </div>
+
+            {/* Penjelasan Tentang Course */}
+            <div className="col-span-1 rounded-xl border border-neutral-200 bg-white p-4 md:col-span-3">
+              <h1 className="mb-4 flex w-fit gap-1 rounded-full border border-amber-500 bg-amber-100 px-4 py-1 font-bold text-neutral-700">
+                <IconBook className="text-neutral-700" />
+                Penjelasan Tentang Course
+              </h1>
+              <div className="prose prose-neutral mt-2 max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {course.description}
+                </ReactMarkdown>
+              </div>
+            </div>
+          </div>
+          {isEditingCourse && (
+            <div className="mx-auto mt-6 w-full max-w-4xl rounded-xl border border-neutral-200 bg-white p-4">
+              <FormCourse
+                mode="edit"
+                initialData={{
+                  name: course.name,
+                  short_description: course.short_description,
+                  description: course.description,
+                  thumbnail_url: course.thumbnail_url,
+                }}
+              />
+            </div>
+          )}
+          <div className="mx-auto mt-4 flex gap-2">
+            <button
+              className="rounded-full bg-blue-500 px-4 py-2 font-bold text-white shadow-inner shadow-white/50 hover:bg-blue-600"
+              onClick={() => setIsEditingCourse(true)}
+            >
+              Edit Course Info
+            </button>
+
+            <button className="rounded-full bg-red-500 px-4 py-2 font-bold text-white shadow-inner shadow-white/50 hover:bg-red-600">
+              Hapus Course
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
-        <div>
-          <h2 className="mb-4 text-xl font-bold text-neutral-700">
-            {selectedVideo ? "Edit Video" : "Tambah Video Baru"}
-          </h2>
+        <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
+          <div>
+            <h2 className="mb-4 text-xl font-bold text-neutral-700">
+              {selectedVideo ? "Edit Video" : "Tambah Video Baru"}
+            </h2>
 
-          <FormVideo video={selectedVideo} onClear={clearSelection} />
-        </div>
+            <FormVideo video={selectedVideo} onClear={clearSelection} />
+          </div>
 
-        <div>
-          <h2 className="mb-4 text-xl font-bold text-neutral-700">
-            Daftar Video
-          </h2>
-          <ul className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-            {videos.map((video) => (
-              <li key={video.id} className="border-b last:border-b-0">
-                <button
-                  type="button"
-                  onClick={() => setSelectedVideo(video)}
-                  className="block w-full cursor-pointer p-4 text-left  hover:bg-blue-50 focus:bg-gradient-to-l focus:outline-none focus:from-blue-100 focus:to-white"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-blue-500">{video.title}</h3>
-                      <p className="text-sm text-neutral-500">
-                        Durasi: {video.duration} Menit
-                      </p>
+          <div>
+            <h2 className="mb-4 text-xl font-bold text-neutral-700">
+              Daftar Video
+            </h2>
+            <ul className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+              {videos.map((video) => (
+                <li key={video.id} className="border-b last:border-b-0">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedVideo(video)}
+                    className="block w-full cursor-pointer p-4 text-left hover:bg-blue-50 focus:bg-gradient-to-l focus:from-blue-100 focus:to-white focus:outline-none"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold text-blue-500">
+                          {video.title}
+                        </h3>
+                        <p className="text-sm text-neutral-500">
+                          Durasi: {video.duration} Menit
+                        </p>
+                      </div>
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-center font-mono text-sm font-bold text-white">
+                        #{video.order_index}
+                      </span>
                     </div>
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-center font-mono text-sm font-bold text-white">
-                      #{video.order_index}
-                    </span>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

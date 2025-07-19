@@ -4,7 +4,7 @@
 
 ## Development
 
-Run the dev server:
+run the dev server:
 
 ```sh
 npm run dev

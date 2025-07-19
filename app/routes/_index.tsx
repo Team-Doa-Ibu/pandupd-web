@@ -3,6 +3,8 @@ import { Navbar } from "../components/ui/Navbar";
 import { Footer } from "../components/ui/footer";
 import { LandingPage } from "../components/pages/LandingPage";
 import { ChatBot } from "../components/ui/chat-bot";
+import { ProtectedRoute } from "~/components/ProtectedRoute";
+
 export const meta: MetaFunction = () => {
   return [
     { title: "Doa Ibu - Platform Prediksi Parkinson" },
