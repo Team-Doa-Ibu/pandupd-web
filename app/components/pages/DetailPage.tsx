@@ -56,9 +56,9 @@ export function DetailPage({ articleId }: DetailPageProps) {
     <div className="flex min-h-screen flex-col bg-white">
       {/* Header dengan background gradient */}
       <div className="w-full bg-gradient-to-r from-orange-700 via-orange-500 to-yellow-400 py-10">
-        <div className="container mx-auto mt-16 px-6">
+        <div className="max-w-6xl mx-auto mt-16 px-4">
           <h1 className="mb-2 text-4xl font-bold text-white">Artikel</h1>
-          <div className="flex items-center space-x-2 text-lg text-white">
+          <div className="flex items-center space-x-2 text-lg text-white ">
             <button
               className="hover:text-yellow-200 focus:outline-none"
               onClick={() => window.history.back()}

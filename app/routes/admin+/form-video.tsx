@@ -1,5 +1,7 @@
+import TinyEditor from "~/components/ui/TinyEditor";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import type { Video } from "./cihuy.videos.$courseId";
+import { useState } from "react";
 
 interface VideoFormProps {
   video?: Video | null; // null = create, Video = edit
@@ -8,6 +10,8 @@ interface VideoFormProps {
 
 export default function FormVideo({ video = null, onClear }: VideoFormProps) {
   const isEdit = Boolean(video);
+
+  const [editorData, setEditorData] = useState(video?.description ?? "");
 
   return (
     <ProtectedRoute adminOnly>
@@ -37,12 +41,8 @@ export default function FormVideo({ video = null, onClear }: VideoFormProps) {
         <div className="mb-4">
           <label className="mb-2 block text-neutral-700">
             Deskripsi
-            <textarea
-              name="description"
-              defaultValue={video?.description ?? ""}
-              className="w-full rounded-md border px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={2}
-            />
+            <TinyEditor value={editorData} onChange={setEditorData} />
+            <input type="hidden" name="description" value={editorData} />
           </label>
         </div>
 

@@ -1,6 +1,8 @@
 // app/routes/admin/form-course.tsx
 import { useState } from "react";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
+import TinyEditor from "~/components/ui/TinyEditor";
+
 
 export type CourseFormData = {
   name: string;
@@ -23,6 +25,7 @@ export default function FormCourse({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedFile(e.target.files?.[0] || null);
   };
+  const [editorData, setEditorData] = useState(initialData.description || "");
 
   const isEdit = mode === "edit";
 
@@ -61,13 +64,9 @@ export default function FormCourse({
 
         <div className="mb-4">
           <label className="mb-2 block text-neutral-700">
-            Penjelasan Tentang Course (Markdown)
-            <textarea
-              name="description"
-              defaultValue={initialData.description}
-              className="w-full rounded-md border px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={3}
-            />
+            Penjelasan Tentang Course
+            <TinyEditor value={editorData} onChange={setEditorData} />
+            <input type="hidden" name="description" value={editorData} />
           </label>
         </div>
 
