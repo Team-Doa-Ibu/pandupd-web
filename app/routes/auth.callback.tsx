@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../data/supabaseClient";
 import { Alert } from "../components/ui/Alert";
+import ProgressLoading from "~/components/ui/progress-loading";
 
 export default function AuthCallback() {
   const [alert, setAlert] = useState<{
@@ -9,6 +10,8 @@ export default function AuthCallback() {
     message: string;
     redirect?: boolean;
   } | null>(null);
+  const [loadingDone, setLoadingDone] = useState(false);
+  const [shouldShowLoading, setShouldShowLoading] = useState(false);
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -16,7 +19,6 @@ export default function AuthCallback() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        console.error("[AUTH DEBUG] User belum login", user);
         setAlert({
           type: "error",
           title: "Gagal Login",
@@ -25,44 +27,55 @@ export default function AuthCallback() {
         });
         return;
       }
-      console.log("[AUTH DEBUG] User login:", user);
 
-      // Upsert user_profile
-      const profilePayload = {
-        user_id: user.id,
-        name: user.user_metadata?.name || "",
-        email: user.email,
-        no_telp: user.user_metadata?.phone || "-",
-        alamat: user.user_metadata?.address || "-",
-        tgl_lahir: user.user_metadata?.birth_date || null,
-        pekerjaan: user.user_metadata?.occupation || "-",
-      };
-      console.log("[AUTH DEBUG] Upsert user_profile payload:", profilePayload);
-      const { error: upsertProfileError } = await supabase
+      // Cek apakah user_profile sudah ada
+      const { data: existingProfile, error: profileFetchError } = await supabase
         .from("user_profile")
-        .upsert([profilePayload], { onConflict: "user_id" });
-      if (upsertProfileError) {
-        console.error(
-          "[AUTH DEBUG] Gagal upsert user_profile:",
-          upsertProfileError,
-        );
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profileFetchError) {
         setAlert({
           type: "error",
-          title: "Gagal simpan profil",
-          message: upsertProfileError.message,
+          title: "Gagal cek profil",
+          message: profileFetchError.message,
           redirect: true,
         });
         return;
       }
 
+      if (!existingProfile) {
+        // Insert user_profile jika belum ada
+        const profilePayload = {
+          user_id: user.id,
+          name: user.user_metadata?.name || "",
+          email: user.email,
+          no_telp: user.user_metadata?.phone || "-",
+          alamat: user.user_metadata?.address || "-",
+          tgl_lahir: user.user_metadata?.birth_date || null,
+          pekerjaan: user.user_metadata?.occupation || "-",
+        };
+        const { error: insertProfileError } = await supabase
+          .from("user_profile")
+          .insert([profilePayload]);
+        if (insertProfileError) {
+          setAlert({
+            type: "error",
+            title: "Gagal simpan profil",
+            message: insertProfileError.message,
+            redirect: true,
+          });
+          return;
+        }
+      }
+
       // Upsert role
       const rolePayload = { user_id: user.id, role: "User" };
-      console.log("[AUTH DEBUG] Upsert role payload:", rolePayload);
       const { error: upsertRoleError } = await supabase
         .from("role")
         .upsert([rolePayload], { onConflict: "user_id" });
       if (upsertRoleError) {
-        console.error("[AUTH DEBUG] Gagal upsert role:", upsertRoleError);
         setAlert({
           type: "error",
           title: "Gagal simpan role",
@@ -72,9 +85,9 @@ export default function AuthCallback() {
         return;
       }
 
-      // Jika semua aman, redirect ke /profile
+      // Jika semua aman, tampilkan loading, lalu redirect ke /profile
       window.localStorage.setItem("justLoggedIn", "1");
-      window.location.href = "/profile";
+      setShouldShowLoading(true);
     };
 
     handleAuth();
@@ -88,10 +101,13 @@ export default function AuthCallback() {
       setAlert(null);
     }
   };
-
+  const handleLoadingComplete = () => {
+    setLoadingDone(true);
+    window.location.href = "/profile";
+  };
   return (
     <>
-      {alert && (
+      {alert ? (
         <Alert
           type={alert.type}
           title={alert.title}
@@ -100,10 +116,16 @@ export default function AuthCallback() {
           onCancel={handleCloseAlert}
           cancelText="Tutup"
         />
+      ) : (
+        <ProgressLoading
+          title="Memproses Data..."
+          subtitle="Mohon tunggu sebentar"
+          spinnerColor="border-amber-400"
+          progressColor="bg-amber-400"
+          onLoadingComplete={handleLoadingComplete}
+          redirectTime={2000}
+        />
       )}
-      <div className="flex min-h-screen items-center justify-center">
-        <span className="text-lg text-gray-600">Memproses login...</span>
-      </div>
     </>
   );
 }

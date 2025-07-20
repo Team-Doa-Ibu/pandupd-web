@@ -27,19 +27,19 @@ export function Navbar() {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-  function handleLogout() {
+  function handleLogouts() {
     setAlert({
       type: "warning",
       title: "Logout",
       message: "Anda yakin ingin logout?",
-      onConfirm: confirmLogout,
+      onConfirm: confirmLogouts,
       confirmText: "Ya, logout",
       cancelText: "Batal",
     });
   }
 
   // Handler konfirmasi logout
-  const confirmLogout = async () => {
+  const confirmLogouts = async () => {
     const { error } = await supabase.auth.signOut();
     if (!error) {
       setAlert({
@@ -55,6 +55,18 @@ export function Navbar() {
   };
   return (
     <>
+      {alert && (
+        <Alert
+          type={alert.type}
+          title={alert.title}
+          message={alert.message}
+          show={!!alert}
+          onConfirm={alert.onConfirm}
+          onCancel={() => setAlert(null)}
+          confirmText={alert.confirmText}
+          cancelText={alert.cancelText}
+        />
+      )}
       <nav className="fixed left-1/2 top-6 z-50 box-border flex w-[95%] max-w-screen-xl -translate-x-1/2 items-center justify-between rounded-full border border-neutral-300 bg-white px-3 py-2 shadow-md sm:max-w-6xl sm:p-2">
         {/* Logo */}
         <div className="flex items-center gap-2">
@@ -151,12 +163,12 @@ export function Navbar() {
                     Riwayat
                   </a>
                   <hr />
-                  <a
-                    onClick={handleLogout}
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  <button
+                    onClick={handleLogouts}
+                    className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
                   >
                     Logout
-                  </a>
+                  </button>
                 </div>
               )}
             </div>
@@ -267,6 +279,13 @@ export function Navbar() {
                         >
                           Riwayat
                         </a>
+                        <hr />
+                        <button
+                          onClick={handleLogouts}
+                          className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+                        >
+                          Logout
+                        </button>
                       </div>
                     )}
                   </div>

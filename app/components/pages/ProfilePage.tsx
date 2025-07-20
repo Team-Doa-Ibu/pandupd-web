@@ -9,6 +9,29 @@ export default function ProfilePage() {
   const [isEditingSecurity, setIsEditingSecurity] = useState(false);
   const [isEditingAdditional, setIsEditingAdditional] = useState(false);
 
+  // State untuk password validation
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  // Password validation
+  const passwordValid = {
+    upper: /[A-Z]/.test(passwordData.newPassword),
+    number: /[0-9]/.test(passwordData.newPassword),
+    symbol: /[^A-Za-z0-9]/.test(passwordData.newPassword),
+    length: passwordData.newPassword.length >= 8,
+  };
+  const isPasswordValid =
+    passwordValid.upper &&
+    passwordValid.number &&
+    passwordValid.symbol &&
+    passwordValid.length;
+  const isPasswordMatch =
+    passwordData.newPassword === passwordData.confirmPassword &&
+    passwordData.confirmPassword.length > 0;
+
   // Data profil (dalam implementasi nyata akan diambil dari API/database)
   const [profile, setProfile] = useState({
     name: "John Doe",
@@ -119,13 +142,153 @@ export default function ProfilePage() {
   }, []);
 
   // Handler untuk update data profil
-  const handleUpdateProfile = (section: any, data: any) => {
-    setProfile({ ...profile, ...data });
+  const handleUpdateProfile = async (section: string, data: any) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
 
-    // Reset mode edit
+      let updateData = {};
+
+      if (section === "basic") {
+        updateData = {
+          name: data.name,
+          no_telp: data.phone,
+        };
+
+        // Update user_metadata di auth.users jika ada perubahan nama
+        if (data.name && data.name !== profile.name) {
+          const { error: authError } = await supabase.auth.updateUser({
+            data: { name: data.name },
+          });
+
+          if (authError) {
+            setAlert({
+              type: "error",
+              title: "Gagal Update",
+              message: authError.message,
+            });
+            return;
+          }
+        }
+      } else if (section === "additional") {
+        updateData = {
+          alamat: data.address,
+          tgl_lahir: data.birthDate,
+          pekerjaan: data.occupation,
+        };
+      }
+
+      const { error } = await supabase
+        .from("user_profile")
+        .update(updateData)
+        .eq("user_id", user.id);
+
+      if (error) {
+        setAlert({
+          type: "error",
+          title: "Gagal Update",
+          message: error.message,
+        });
+        return;
+      }
+
+      // Update state lokal
+      setProfile({ ...profile, ...data });
+
+      // Reset mode edit
+      if (section === "basic") setIsEditingBasic(false);
+      if (section === "additional") setIsEditingAdditional(false);
+
+      setAlert({
+        type: "success",
+        title: "Berhasil Update",
+        message: "Data profil berhasil diperbarui.",
+      });
+    } catch (error) {
+      setAlert({
+        type: "error",
+        title: "Gagal Update",
+        message: "Terjadi kesalahan saat memperbarui data.",
+      });
+    }
+  };
+
+  // Handler untuk cancel edit
+  const handleCancelEdit = (section: string) => {
     if (section === "basic") setIsEditingBasic(false);
-    if (section === "security") setIsEditingSecurity(false);
     if (section === "additional") setIsEditingAdditional(false);
+    if (section === "security") {
+      setIsEditingSecurity(false);
+      setPasswordData({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    }
+  };
+
+  // Handler untuk update password
+  const handleUpdatePassword = async () => {
+    try {
+      // Validasi password baru
+      if (!isPasswordValid) {
+        setAlert({
+          type: "error",
+          title: "Password Tidak Valid",
+          message: "Password harus memenuhi semua persyaratan keamanan.",
+        });
+        return;
+      }
+
+      if (!isPasswordMatch) {
+        setAlert({
+          type: "error",
+          title: "Password Tidak Cocok",
+          message: "Password baru dan konfirmasi password tidak sama.",
+        });
+        return;
+      }
+
+      // Update password menggunakan Supabase
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.newPassword,
+      });
+
+      if (error) {
+        setAlert({
+          type: "error",
+          title: "Gagal Update Password",
+          message: error.message,
+        });
+        return;
+      }
+
+      setAlert({
+        type: "success",
+        title: "Berhasil Update Password",
+        message: "Password berhasil diperbarui.",
+      });
+
+      setIsEditingSecurity(false);
+      setPasswordData({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      setAlert({
+        type: "error",
+        title: "Gagal Update Password",
+        message: "Terjadi kesalahan saat memperbarui password.",
+      });
+    }
+  };
+
+  // Handler untuk input password
+  const handlePasswordChange = (field: string, value: string) => {
+    setPasswordData((prev) => ({ ...prev, [field]: value }));
   };
 
   function handleLogout() {
@@ -225,6 +388,7 @@ export default function ProfilePage() {
                 <label className="mb-2 block text-gray-600">Nama Lengkap</label>
                 <input
                   type="text"
+                  id="editName"
                   className="mb-3 w-full rounded-md border border-gray-300 px-3 py-2"
                   defaultValue={profile.name}
                 />
@@ -232,11 +396,9 @@ export default function ProfilePage() {
               <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-gray-600">Email</label>
-                  <input
-                    type="email"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    defaultValue={profile.email}
-                  />
+                  <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                    {profile.email}
+                  </div>
                 </div>
                 <div>
                   <label className="mb-2 block text-gray-600">
@@ -244,17 +406,34 @@ export default function ProfilePage() {
                   </label>
                   <input
                     type="tel"
+                    id="editPhone"
                     className="w-full rounded-md border border-gray-300 px-3 py-2"
                     defaultValue={profile.phone}
                   />
                 </div>
               </div>
-              <button
-                className="rounded-full bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                onClick={() => handleUpdateProfile("basic", {})}
-              >
-                Simpan
-              </button>
+              <div className="flex gap-2">
+                <button
+                  className="rounded-full bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                  onClick={() => {
+                    const name = (
+                      document.getElementById("editName") as HTMLInputElement
+                    )?.value;
+                    const phone = (
+                      document.getElementById("editPhone") as HTMLInputElement
+                    )?.value;
+                    handleUpdateProfile("basic", { name, phone });
+                  }}
+                >
+                  Simpan
+                </button>
+                <button
+                  className="rounded-full bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+                  onClick={() => handleCancelEdit("basic")}
+                >
+                  Batal
+                </button>
+              </div>
             </div>
           ) : (
             <div>
@@ -292,21 +471,42 @@ export default function ProfilePage() {
 
         {/* Keamanan */}
         <div className="mb-6 rounded-lg bg-white p-6 shadow-md">
-          <h3 className="mb-4 text-lg font-semibold text-blue-500">Keamanan</h3>
+          <div className="mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-blue-500">Keamanan</h3>
+            <div className="group relative">
+              <span className="cursor-help text-xl text-yellow-500">!</span>
+              <div className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 transform opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="rounded-lg bg-gray-800 p-3 text-sm text-white shadow-lg">
+                  <div className="mb-2 font-semibold">
+                    Password harus memiliki:
+                  </div>
+                  <div>• Minimal 8 karakter</div>
+                  <div>• Ada huruf besar</div>
+                  <div>• Ada angka</div>
+                  <div>• Ada simbol (misal: !@#$%^&*)</div>
+                  <div className="absolute left-1/2 top-full -translate-x-1/2 transform border-4 border-transparent border-t-gray-800"></div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {isEditingSecurity ? (
             <div>
-              <div>
-                <label className="mb-2 block text-gray-600">
-                  Password Lama
-                </label>
-                <input
-                  type="password"
-                  className="mb-3 w-full rounded-md border border-gray-300 px-3 py-2"
-                  defaultValue={profile.password}
-                />
-              </div>
               <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-gray-600">
+                    Password Lama
+                  </label>
+                  <input
+                    type="password"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    value={passwordData.oldPassword}
+                    onChange={(e) =>
+                      handlePasswordChange("oldPassword", e.target.value)
+                    }
+                    placeholder="Masukkan password lama"
+                  />
+                </div>
                 <div>
                   <label className="mb-2 block text-gray-600">
                     Password Baru
@@ -314,54 +514,100 @@ export default function ProfilePage() {
                   <input
                     type="password"
                     className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    defaultValue=""
+                    value={passwordData.newPassword}
+                    onChange={(e) =>
+                      handlePasswordChange("newPassword", e.target.value)
+                    }
+                    placeholder="Masukkan password baru"
                   />
                 </div>
-                <div className="mb-4">
+                <div>
                   <label className="mb-2 block text-gray-600">
                     Ulangi Password
                   </label>
                   <input
                     type="password"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    defaultValue=""
+                    className={`w-full rounded-md border px-3 py-2 ${
+                      passwordData.confirmPassword.length > 0
+                        ? isPasswordMatch
+                          ? "border-green-500 bg-green-50"
+                          : "border-red-500 bg-red-50"
+                        : "border-gray-300"
+                    }`}
+                    value={passwordData.confirmPassword}
+                    onChange={(e) =>
+                      handlePasswordChange("confirmPassword", e.target.value)
+                    }
+                    placeholder="Ulangi password baru"
                   />
+                  {passwordData.confirmPassword.length > 0 && (
+                    <div
+                      className={`mt-1 text-xs ${isPasswordMatch ? "text-green-600" : "text-red-600"}`}
+                    >
+                      {isPasswordMatch
+                        ? "✓ Password cocok"
+                        : "✗ Password tidak cocok"}
+                    </div>
+                  )}
                 </div>
               </div>
-              <button
-                className="rounded-full bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                onClick={() => handleUpdateProfile("security", {})}
-              >
-                Simpan
-              </button>
+
+              {/* Password validation indicators */}
+              <div className="mb-4 flex flex-col gap-1 text-xs">
+                <span
+                  className={
+                    passwordValid.length ? "text-green-600" : "text-gray-400"
+                  }
+                >
+                  • Minimal 8 karakter {passwordValid.length ? "✓" : ""}
+                </span>
+                <span
+                  className={
+                    passwordValid.upper ? "text-green-600" : "text-gray-400"
+                  }
+                >
+                  • Ada huruf besar {passwordValid.upper ? "✓" : ""}
+                </span>
+                <span
+                  className={
+                    passwordValid.number ? "text-green-600" : "text-gray-400"
+                  }
+                >
+                  • Ada angka {passwordValid.number ? "✓" : ""}
+                </span>
+                <span
+                  className={
+                    passwordValid.symbol ? "text-green-600" : "text-gray-400"
+                  }
+                >
+                  • Ada simbol (misal: !@#$%^&*){" "}
+                  {passwordValid.symbol ? "✓" : ""}
+                </span>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  className="rounded-full bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:bg-gray-400"
+                  onClick={handleUpdatePassword}
+                  disabled={!isPasswordValid || !isPasswordMatch}
+                >
+                  Simpan
+                </button>
+                <button
+                  className="rounded-full bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+                  onClick={() => handleCancelEdit("security")}
+                >
+                  Batal
+                </button>
+              </div>
             </div>
           ) : (
             <div>
               <div>
-                <label className="mb-2 block text-gray-600">
-                  Password Lama
-                </label>
+                <label className="mb-2 block text-gray-600">Password</label>
                 <div className="mb-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
                   {profile.password}
                 </div>
-              </div>
-              <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-gray-600">
-                    Password Baru
-                  </label>
-                  <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-                    {profile.password}
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-2 block text-gray-600">
-                    Ulangi Password
-                  </label>
-                  <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-                    {profile.password}
-                  </div>
-                </div>{" "}
               </div>
               <button
                 className="rounded-full bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
@@ -384,6 +630,7 @@ export default function ProfilePage() {
               <div className="mb-4">
                 <label className="mb-2 block text-gray-600">Alamat</label>
                 <textarea
+                  id="editAddress"
                   className="w-full rounded-md border border-gray-300 px-3 py-2"
                   defaultValue={profile.address}
                   rows={3}
@@ -395,7 +642,8 @@ export default function ProfilePage() {
                     Tanggal Lahir
                   </label>
                   <input
-                    type="text"
+                    type="date"
+                    id="editBirthDate"
                     className="w-full rounded-md border border-gray-300 px-3 py-2"
                     defaultValue={profile.birthDate}
                   />
@@ -404,22 +652,47 @@ export default function ProfilePage() {
                   <label className="mb-2 block text-gray-600">Pekerjaan</label>
                   <input
                     type="text"
+                    id="editOccupation"
                     className="w-full rounded-md border border-gray-300 px-3 py-2"
                     defaultValue={profile.occupation}
                   />
                 </div>
               </div>
-              <button
-                className="rounded-full bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                onClick={() =>
-                  handleUpdateProfile("additional", {
-                    // Di sini Anda akan mengambil nilai dari input
-                    // dan memperbarui state profile
-                  })
-                }
-              >
-                Simpan
-              </button>
+              <div className="flex gap-2">
+                <button
+                  className="rounded-full bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                  onClick={() => {
+                    const address = (
+                      document.getElementById(
+                        "editAddress",
+                      ) as HTMLTextAreaElement
+                    )?.value;
+                    const birthDate = (
+                      document.getElementById(
+                        "editBirthDate",
+                      ) as HTMLInputElement
+                    )?.value;
+                    const occupation = (
+                      document.getElementById(
+                        "editOccupation",
+                      ) as HTMLInputElement
+                    )?.value;
+                    handleUpdateProfile("additional", {
+                      address,
+                      birthDate,
+                      occupation,
+                    });
+                  }}
+                >
+                  Simpan
+                </button>
+                <button
+                  className="rounded-full bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+                  onClick={() => handleCancelEdit("additional")}
+                >
+                  Batal
+                </button>
+              </div>
             </div>
           ) : (
             <div>

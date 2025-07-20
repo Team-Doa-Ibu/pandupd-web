@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "@remix-run/react";
 import { supabase } from "../../data/supabaseClient";
 import { Alert } from "../ui/Alert";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 
 export default function LoginPage() {
   const backgroundImagePath = "login-bg.png";
@@ -11,6 +12,7 @@ export default function LoginPage() {
     message: string;
     onConfirm?: () => void;
   } | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Handler untuk login Google
   const handleGoogleLogin = async () => {
@@ -35,12 +37,17 @@ export default function LoginPage() {
       password,
     });
 
-    // 2. Jika error (salah email/password)
+    // 2. Jika error (salah email/password atau email belum verifikasi)
     if (error || !data.user) {
+      let message = "Email atau password salah.";
+      if (error?.message?.toLowerCase().includes("email not confirmed")) {
+        message =
+          "Akun belum diverifikasi. Silakan cek email Anda untuk verifikasi sebelum login.";
+      }
       setAlert({
         type: "error",
         title: "Login Gagal",
-        message: "Email atau password salah.",
+        message,
       });
       return;
     }
@@ -107,18 +114,29 @@ export default function LoginPage() {
               required
             />
           </div>
-          <div>
+          <div className="relative">
             <label htmlFor="password" className="sr-only">
               Password
             </label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               name="password"
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 pr-10 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Password"
               required
             />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-2 top-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+              aria-label={
+                showPassword ? "Sembunyikan password" : "Lihat password"
+              }
+            >
+              {showPassword ? <IconEyeOff size={20} /> : <IconEye size={20} />}
+            </button>
           </div>
           <button
             type="submit"
