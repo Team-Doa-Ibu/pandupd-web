@@ -70,19 +70,37 @@ export default function AuthCallback() {
         }
       }
 
-      // Upsert role
-      const rolePayload = { user_id: user.id, role: "User" };
-      const { error: upsertRoleError } = await supabase
+      // Insert role hanya jika belum ada
+      const { data: existingRole, error: fetchRoleError } = await supabase
         .from("role")
-        .upsert([rolePayload], { onConflict: "user_id" });
-      if (upsertRoleError) {
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (fetchRoleError) {
         setAlert({
           type: "error",
-          title: "Gagal simpan role",
-          message: upsertRoleError.message,
+          title: "Gagal cek role",
+          message: fetchRoleError.message,
           redirect: true,
         });
         return;
+      }
+
+      if (!existingRole) {
+        const rolePayload = { user_id: user.id, role: "User" };
+        const { error: insertRoleError } = await supabase
+          .from("role")
+          .insert([rolePayload]);
+        if (insertRoleError) {
+          setAlert({
+            type: "error",
+            title: "Gagal simpan role",
+            message: insertRoleError.message,
+            redirect: true,
+          });
+          return;
+        }
       }
 
       // Jika semua aman, tampilkan loading, lalu redirect ke /profile

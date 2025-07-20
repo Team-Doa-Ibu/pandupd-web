@@ -39,7 +39,7 @@ export function ProtectedRoute({
           .select("role")
           .eq("user_id", user.id)
           .maybeSingle();
-        if (!roleData || roleData.role !== "admin") {
+        if (!roleData || roleData.role !== "Admin") {
           navigate("/error/403", { replace: true });
           return;
         }
