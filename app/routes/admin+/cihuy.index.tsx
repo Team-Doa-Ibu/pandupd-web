@@ -32,7 +32,7 @@ export default function AdminCourses() {
   return (
     <ProtectedRoute adminOnly>
       <div className="mx-auto min-h-screen w-full bg-neutral-50">
-        <div className="fixed w-full bg-blue-700/80 p-4 text-center font-mono text-2xl font-bold uppercase text-white backdrop-blur-lg">
+        <div className="fixed w-full z-50 bg-blue-700/80 p-4 text-center font-mono text-2xl font-bold uppercase text-white backdrop-blur-lg">
           Atmint datang
         </div>
 

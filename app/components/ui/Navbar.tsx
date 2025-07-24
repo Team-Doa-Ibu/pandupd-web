@@ -70,8 +70,11 @@ export function Navbar() {
       <nav className="fixed left-1/2 top-6 z-50 box-border flex w-[95%] max-w-screen-xl -translate-x-1/2 items-center justify-between rounded-full border border-neutral-300 bg-white px-3 py-2 shadow-md sm:max-w-6xl sm:p-2">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-full" />
-          <span className="font-semibold text-black">PANDU‑PD</span>
+          <img
+            src="/Logo.svg"
+            alt="Logo"
+            className="ml-2 h-9 rounded-full"
+          />
         </div>
 
         {/* Desktop Menu */}
@@ -149,7 +152,7 @@ export function Navbar() {
                 </svg>
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-40 rounded-lg border bg-white shadow-lg">
+                <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-lg border bg-white shadow-lg">
                   <a
                     href="/profile"
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"

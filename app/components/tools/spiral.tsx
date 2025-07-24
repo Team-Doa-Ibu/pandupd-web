@@ -54,9 +54,9 @@ export default function Spiral({ onConfirm }: SpiralProps) {
               width="100%"
               height="100%"
               strokeWidth={4}
-              strokeColor="#3b82f6"
+              strokeColor="#000000"
               canvasColor="#ffffff"
-              backgroundImage="/spiral-guide.svg"
+              backgroundImage="/titik.svg"
               preserveBackgroundImageAspectRatio="xMidYMid meet"
               style={{
                 borderRadius: "8px !important",
