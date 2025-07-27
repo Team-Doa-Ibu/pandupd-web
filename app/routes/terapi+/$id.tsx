@@ -1,4 +1,6 @@
-import { Link } from "@remix-run/react";
+import { useEffect, useState } from "react";
+import { useParams, Link } from "@remix-run/react";
+import { supabase } from "../../data/supabaseClient";
 import {
   IconBook,
   IconChevronRight,
@@ -18,36 +20,68 @@ type Video = {
   order_index: number;
 };
 
+type Course = {
+  id: number;
+  judul: string;
+  thumbnail: string;
+  slug: string;
+  short_deskripsi: string;
+  deskripsi: string;
+};
+
+type SubPembelajaran = {
+  id: number;
+  judul: string;
+  slug: string;
+  durasi: string;
+  no_urut: number;
+};
+
 export default function CourseDetail() {
-  // Data dummy - akan diganti dengan data dari backend
-  const course = {
-    id: "1",
-    name: "Terapi Dasar Parkinson",
-    short_description:
-      "Terapi ini membantu pasien parkinson dalam meningkatkan mobilitas dan kualitas hidup sehari-hari melalui serangkaian latihan yang dirancang khusus.",
-    description:
-      "### 🎯 Course Terapi Parkinson - Memahami & Mengatasi Gejala Sejak Dini\n\nSebuah program interaktif yang dirancang untuk membantu pasien Parkinson, caregiver, serta profesional kesehatan mengenali dan menangani gejala Parkinson dengan terapi berbasis bukti dan teknologi.\n ### 🧩 Apa yang Akan Dipelajari?\n\n Dalam course ini, kamu akan mempelajari berbagai teknik dan pendekatan yang mudah dipahami dan dipraktikkan, antara lain:\n\n #### 1. Latihan Fisik & Motorik\n\n- 🌀 **Menggambar Spiral** – Deteksi awal tremor dan gangguan motorik.\n\n- 🖐️ **Latihan Gerakan Halus** – Melatih kemampuan motorik untuk aktivitas sehari-hari.\n\n",
-    thumbnail_url: "/DBS.jpg",
-  };
+  const { id: courseSlug } = useParams();
+  const [course, setCourse] = useState<Course | null>(null);
+  const [videos, setVideos] = useState<SubPembelajaran[]>([]);
+  const [completedIds, setCompletedIds] = useState<number[]>([]);
 
-  const videos: Video[] = [
-    {
-      id: "1",
-      title: "Pengenalan Parkinson",
-      duration: "10:30",
-      order_index: 1,
-    },
-    { id: "2", title: "Latihan Pernapasan", duration: "12:45", order_index: 2 },
-    { id: "3", title: "Peregangan Dasar", duration: "15:20", order_index: 3 },
-    // ... tambahkan video lainnya
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      // Fetch course by slug
+      const { data: courseData } = await supabase
+        .from("courses")
+        .select("id, judul, thumbnail, slug, short_deskripsi, deskripsi")
+        .eq("slug", courseSlug)
+        .single();
+      setCourse(courseData);
+      if (!courseData) return;
 
-  // Dummy: video yang sudah ditonton (ID video)
-  const completedVideoIds = ["1", "2"];
+      // Fetch sub_pembelajaran for this course
+      const { data: subs } = await supabase
+        .from("sub_pembelajaran")
+        .select("id, judul, slug, durasi, no_urut")
+        .eq("courses_id", courseData.id)
+        .order("no_urut", { ascending: true });
+      setVideos(subs || []);
+
+      // Fetch user progress for this course
+      const user = await supabase.auth.getUser();
+      const { data: userProgress } = await supabase
+        .from("user_progress")
+        .select("sub_pembelajaran, is_completed")
+        .eq("course_id", courseData.id)
+        .eq("user_id", user.data.user?.id || "");
+      const completed = (userProgress || [])
+        .filter((p: { is_completed: boolean }) => p.is_completed)
+        .map((p: { sub_pembelajaran: number }) => p.sub_pembelajaran);
+      setCompletedIds(completed);
+    };
+    fetchData();
+  }, [courseSlug]);
+
+  if (!course) return null;
 
   // Temukan video pertama yang belum ditonton
   const nextVideo =
-    videos.find((v) => !completedVideoIds.includes(v.id)) || videos[0];
+    videos.find((v) => !completedIds.includes(v.id)) || videos[0];
 
   return (
     <>
@@ -63,12 +97,12 @@ export default function CourseDetail() {
                 Terapi
               </Link>
               <IconChevronRight size={16} className="text-neutral-400" />
-              <p className="text-amber-500">{course.name}</p>
+              <p className="text-amber-500">{course.judul}</p>
             </div>
             <h1 className="mb-2 text-2xl font-bold text-white sm:text-4xl">
-              {course.name}
+              {course.judul}
             </h1>
-            <p className="text-neutral-400">{course.short_description}</p>
+            <p className="text-neutral-400">{course.short_deskripsi}</p>
           </div>
         </div>
 
@@ -79,14 +113,14 @@ export default function CourseDetail() {
             <h1 className="text-xl font-bold text-blue-700 sm:text-2xl">
               Mulai terapi?
             </h1>
-            <Link
-              to={`/terapi/${course.id}/video/${nextVideo.id}`}
-              className="rounded-full bg-blue-500 px-4 py-1 font-medium text-white shadow-inner shadow-white/50 hover:bg-blue-600 sm:px-6 sm:py-2"
-            >
-              {completedVideoIds.length > 0
-                ? "Lanjutkan Terapi"
-                : "Mulai Terapi"}
-            </Link>
+            {nextVideo && (
+              <Link
+                to={`/terapi/${course.slug}/video/${nextVideo.slug}`}
+                className="rounded-full bg-blue-500 px-4 py-1 font-medium text-white shadow-inner shadow-white/50 hover:bg-blue-600 sm:px-6 sm:py-2"
+              >
+                {completedIds.length > 0 ? "Lanjutkan Terapi" : "Mulai Terapi"}
+              </Link>
+            )}
           </div>
 
           {/* main container */}
@@ -94,9 +128,18 @@ export default function CourseDetail() {
             <div className="flex flex-col">
               <div className="mx-auto mb-8 sm:mt-4">
                 <img
-                  src={course.thumbnail_url}
+                  src={
+                    course.thumbnail.startsWith("http")
+                      ? course.thumbnail
+                      : course.thumbnail.startsWith("/")
+                        ? course.thumbnail
+                        : "/" + course.thumbnail
+                  }
                   alt="course-image"
                   className="aspect-video max-h-64 rounded-md object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/logo.png";
+                  }}
                 />
               </div>
               <h1 className="mb-4 flex w-fit gap-1 rounded-full border border-amber-500 bg-amber-100 px-4 py-1 font-bold text-neutral-700">
@@ -105,7 +148,7 @@ export default function CourseDetail() {
               </h1>
               <div className="prose prose-neutral max-w-none">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {course.description}
+                  {(course.deskripsi || "").replaceAll("\\n", "\n")}
                 </ReactMarkdown>
               </div>
             </div>
@@ -121,38 +164,40 @@ export default function CourseDetail() {
             </div>
             <ul className="space-y-2 overflow-auto">
               {videos.map((video) => (
-                <li
-                  key={video.id}
-                  className="cursor-pointer rounded-lg bg-neutral-50 p-4 transition-colors hover:bg-neutral-100"
-                >
-                  <div className="flex items-center">
-                    <div className="flex w-full items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500">
-                          <IconPlayerPlayFilled
-                            className="text-white"
-                            size={18}
-                          />
+                <li key={video.id}>
+                  <Link
+                    to={`/terapi/${course.slug}/video/${video.slug}`}
+                    className="block rounded-lg bg-neutral-50 p-4 transition-colors hover:bg-neutral-100"
+                  >
+                    <div className="flex items-center">
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500">
+                            <IconPlayerPlayFilled
+                              className="text-white"
+                              size={18}
+                            />
+                          </div>
+                          <h3 className="line-clamp-2 text-neutral-700">
+                            <span className="mx-1">#{video.no_urut}</span>
+                            {video.judul}
+                          </h3>
                         </div>
-                        <h3 className="line-clamp-2 text-neutral-700">
-                          <span className="mx-1">#{video.order_index}</span>
-                          {video.title}
-                        </h3>
-                      </div>
-                      <div className="flex flex-col-reverse items-end gap-1 sm:gap-2 sm:flex-row sm:items-center sm:justify-center">
-                        <span className="text-neutral-500">
-                          {completedVideoIds.includes(video.id) && (
-                            <div className="flex items-center justify-center rounded-full bg-blue-500 px-4 py-1 text-xs font-bold uppercase text-white">
-                              selesai
-                            </div>
-                          )}
-                        </span>
-                        <p className="text-sm text-neutral-500">
-                          {video.duration}
-                        </p>
+                        <div className="flex flex-col-reverse items-end gap-1 sm:flex-row sm:items-center sm:justify-center sm:gap-2">
+                          <span className="text-neutral-500">
+                            {completedIds.includes(video.id) && (
+                              <div className="flex items-center justify-center rounded-full bg-blue-500 px-4 py-1 text-xs font-bold uppercase text-white">
+                                selesai
+                              </div>
+                            )}
+                          </span>
+                          <p className="text-sm text-neutral-500">
+                            {video.durasi}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 </li>
               ))}
             </ul>

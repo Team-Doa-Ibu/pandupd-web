@@ -39,7 +39,7 @@ export default function ProfilePage() {
     password: "••••••••••",
     phone: "0851568623434",
     address: "Jl. Putra Tajur, Pemagarsari, Kec. Parung",
-    birthDate: "07/06/1970",
+    birthDate: "00/00/0000",
     occupation: "Pengangguran",
   });
 

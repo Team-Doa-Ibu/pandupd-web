@@ -1,4 +1,6 @@
-import { Form, Link } from "@remix-run/react";
+import { useEffect, useState } from "react";
+import { Form, Link, useParams, useNavigate } from "@remix-run/react";
+import { supabase } from "../../data/supabaseClient";
 import {
   IconChevronRight,
   IconCircleCheckFilled,
@@ -9,62 +11,84 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 // Tipe data untuk video (akan disediakan oleh backend)
-type Video = {
-  id: string;
-  course_id: string;
-  title: string;
-  description: string;
-  youtube_url: string;
-  duration: string;
-  order_index: number;
+type Course = {
+  id: number;
+  judul: string;
+  slug: string;
+};
+
+type SubPembelajaran = {
+  id: number;
+  courses_id: number;
+  judul: string;
+  slug: string;
+  konten: string;
+  link: string;
+  durasi: string;
+  no_urut: number;
 };
 
 export default function VideoPlayer() {
-  // Data dummy - akan diganti dengan data dari backend
-  const course = {
-    id: "1",
-    name: "Terapi Dasar Parkinson",
-  };
+  const { id: courseSlug, videoId: subSlug } = useParams();
+  const [course, setCourse] = useState<Course | null>(null);
+  const [currentVideo, setCurrentVideo] = useState<SubPembelajaran | null>(
+    null,
+  );
+  const [allVideos, setAllVideos] = useState<SubPembelajaran[]>([]);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [userId, setUserId] = useState<string>("");
+  const navigate = useNavigate();
 
-  // Data dummy - akan diganti dengan data dari backend
-  const currentVideo: Video = {
-    id: "3",
-    course_id: "1",
-    title: "Peregangan Dasar",
-    description:
-      "Video ini akan mengajarkan teknik peregangan dasar yang aman untuk pasien Parkinson. Lakukan setiap pagi untuk hasil terbaik.\n\nSPEAK OUT! Home Practice Sessions: Every Monday - Friday at 10 am CT! For 20 minutes, we practice speaking & living with INTENT to improve speech & swallowing in Parkinson's.\n\n- cihuy\n- psht\n- gus pixmen\n\n> Korupsi setiap pagi untuk hasil terbaik.",
-    youtube_url: "https://www.youtube.com/watch?v=CUYs1NcRPdE",
-    duration: "15:20",
-    order_index: 3,
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get user
+        const user = await supabase.auth.getUser();
+        setUserId(user.data.user?.id || "");
 
-  const allVideos: Video[] = [
-    {
-      id: "1",
-      course_id: "1",
-      title: "Pengenalan Parkinson",
-      duration: "10:30",
-      order_index: 1,
-      youtube_url: "",
-      description: "Pengenalan tentang penyakit Parkinson dan gejalanya.",
-    },
-    {
-      id: "2",
-      course_id: "1",
-      title: "Latihan Pernapasan",
-      duration: "12:45",
-      order_index: 2,
-      youtube_url: "",
-      description: "Latihan pernapasan untuk relaksasi dan fokus.",
-    },
-    currentVideo,
-    
+        // Fetch course by slug
+        const { data: courseData } = await supabase
+          .from("courses")
+          .select("id, judul, slug")
+          .eq("slug", courseSlug)
+          .single();
+        setCourse(courseData);
+        if (!courseData) {
+          setCurrentVideo(null);
+          return;
+        }
 
-    // ... tambahkan video lainnya
-  ];
+        // Fetch all sub_pembelajaran for playlist
+        const { data: allSubs } = await supabase
+          .from("sub_pembelajaran")
+          .select("id, courses_id, judul, slug, konten, link, durasi, no_urut")
+          .eq("courses_id", courseData.id)
+          .order("no_urut", { ascending: true });
+        setAllVideos(allSubs || []);
 
-  // Dummy: apakah video ini sudah selesai ditonton?
-  const isCompleted = false;
+        // Fetch current sub_pembelajaran by slug dan courses_id
+        const { data: subData } = await supabase
+          .from("sub_pembelajaran")
+          .select("id, courses_id, judul, slug, konten, link, durasi, no_urut")
+          .eq("slug", subSlug)
+          .eq("courses_id", courseData.id)
+          .single();
+        setCurrentVideo(subData);
+        if (!subData) return;
+        // Fetch user progress untuk sub_pembelajaran ini hanya jika subData ada
+        const { data: progress } = await supabase
+          .from("user_progress")
+          .select("is_completed")
+          .eq("user_id", user.data.user?.id || "")
+          .eq("sub_pembelajaran", subData.id)
+          .single();
+        setIsCompleted(progress?.is_completed || false);
+      } catch (err) {
+        // Optional: bisa log error ke monitoring, tapi tidak tampilkan di UI
+      }
+    };
+    fetchData();
+  }, [courseSlug, subSlug]);
 
   // Fungsi untuk mendapatkan YouTube ID dari URL
   const getYouTubeId = (url: string) => {
@@ -74,7 +98,26 @@ export default function VideoPlayer() {
     return match && match[2].length === 11 ? match[2] : null;
   };
 
-  const youtubeId = getYouTubeId(currentVideo.youtube_url);
+  const youtubeId = getYouTubeId(currentVideo?.link || "");
+
+  // Handle mark as completed
+  const handleMarkCompleted = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId || !currentVideo || !course) return;
+    // Upsert user_progress
+    await supabase.from("user_progress").upsert(
+      [
+        {
+          user_id: userId,
+          course_id: course.id,
+          sub_pembelajaran: currentVideo.id,
+          is_completed: true,
+        },
+      ],
+      { onConflict: "user_id,sub_pembelajaran" },
+    );
+    setIsCompleted(true);
+  };
 
   return (
     <>
@@ -96,13 +139,13 @@ export default function VideoPlayer() {
             </Link>
             <IconChevronRight size={16} className="text-neutral-500" />
             <Link
-              to={`/terapi/${course.id}`}
+              to={`/terapi/${course?.slug}`}
               className="text-neutral-500 hover:text-neutral-700 hover:underline"
             >
-              {course.name}
+              {course?.judul}
             </Link>
             <IconChevronRight size={16} className="text-neutral-500" />
-            <p className="text-amber-600">{currentVideo.title}</p>
+            <p className="text-amber-600">{currentVideo?.judul}</p>
           </div>
 
           {/* video */}
@@ -115,7 +158,7 @@ export default function VideoPlayer() {
                     className="aspect-video h-full w-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
-                    title={currentVideo.title}
+                    title={currentVideo?.judul || ""}
                   />
                 )}
               </div>
@@ -123,32 +166,39 @@ export default function VideoPlayer() {
               {/* deskripsi */}
               <div className="rounded-xl bg-white p-4">
                 <h1 className="mb-4 mt-2 text-2xl font-bold text-neutral-700">
-                  <span>#{currentVideo.order_index} </span>
-                  {currentVideo.title}
+                  <span>#{currentVideo?.no_urut} </span>
+                  {currentVideo?.judul}
                 </h1>
                 <div className="prose prose-neutral max-w-none rounded-md bg-neutral-50 p-4">
-                  {" "}
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {currentVideo.description}
+                    {currentVideo?.konten}
                   </ReactMarkdown>
                 </div>
 
                 {!isCompleted && (
-                  <Form
-                    method="post"
+                  <form
+                    onSubmit={handleMarkCompleted}
                     className="mt-4 flex flex-col items-center justify-center gap-4 rounded-md bg-blue-50 p-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <p className="text-lg font-bold text-blue-700">
                       Sudah paham?
                     </p>
                     <button
-                      name="_action"
-                      value="mark-completed"
+                      type="submit"
                       className="rounded-full bg-blue-500 px-6 py-2 font-medium text-white shadow-inner shadow-white/50 hover:bg-blue-600"
                     >
                       Tandai sebagai Selesai
                     </button>
-                  </Form>
+                  </form>
+                )}
+                {isCompleted && (
+                  <div className="mt-4 flex items-center gap-2 font-bold text-blue-700">
+                    <IconCircleCheckFilled
+                      className="text-blue-500"
+                      size={24}
+                    />
+                    Materi ini sudah selesai dipelajari
+                  </div>
                 )}
               </div>
             </div>
@@ -158,36 +208,34 @@ export default function VideoPlayer() {
               <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
                 <div className="flex items-center gap-1 border-b border-neutral-200 p-4">
                   <IconList className="text-blue-500" size={24} />
-                  <h2 className="text-lg font-bold text-blue-500">
-                    Playlist
-                  </h2>
+                  <h2 className="text-lg font-bold text-blue-500">Playlist</h2>
                 </div>
                 <ul className="space-y-2 overflow-y-auto p-4 lg:max-h-[440px]">
                   {allVideos.map((video) => (
                     <li key={video.id}>
                       <Link
-                        to={`/course/${currentVideo.course_id}/video/${video.id}`}
+                        to={`/terapi/${course?.slug}/video/${video.slug}`}
                         className={`block rounded-md p-3 ${
-                          video.id === currentVideo.id
+                          video.id === currentVideo?.id
                             ? "bg-blue-500 text-white"
                             : "bg-neutral-50 hover:bg-neutral-100"
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <p className="line-clamp-1 font-medium">
-                            #{video.order_index} {video.title}
+                            #{video.no_urut} {video.judul}
                           </p>
                           <div className="flex flex-row items-center gap-1">
                             <span className="text-neutral-500">
-                              {/* kondisi sementara, ubah sesuai kondisi dan logika sebenarnya*/}
-                              {video.id < currentVideo.id && (
-                                <IconCircleCheckFilled
-                                  className="text-blue-500"
-                                  size={24}
-                                />
-                              )}
+                              {currentVideo?.id !== undefined &&
+                                video.id < currentVideo.id && (
+                                  <IconCircleCheckFilled
+                                    className="text-blue-500"
+                                    size={24}
+                                  />
+                                )}
                             </span>
-                            <p>{video.duration}</p>
+                            <p>{video.durasi}</p>
                           </div>
                         </div>
                       </Link>

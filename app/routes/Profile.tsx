@@ -3,6 +3,7 @@ import ProfilePage from "../components/pages/ProfilePage";
 import { Navbar } from "~/components/ui/Navbar";
 import { Footer } from "~/components/ui/footer";
 import { ProtectedRoute } from "~/components/ProtectedRoute";
+import { ChatBot } from "~/components/ui/chat-bot";
 
 export default function profile() {
   return (
@@ -10,6 +11,7 @@ export default function profile() {
       <Navbar />
       <ProfilePage />
       <Footer />
+      <ChatBot />
     </ProtectedRoute>
   );
 }

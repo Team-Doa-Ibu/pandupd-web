@@ -1,31 +1,66 @@
+import { useEffect, useState } from "react";
 import { Link } from "@remix-run/react";
+import { supabase } from "../../data/supabaseClient";
 
 type Course = {
-  id: string;
-  name: string;
-  thumbnail_url: string;
-  progress: number;
-  total_videos: number;
+  id: number;
+  judul: string;
+  thumbnail: string;
+  slug: string;
+  short_deskripsi: string;
+};
+
+type UserProgress = {
+  course_id: number;
+  sub_pembelajaran: number;
+  is_completed: boolean;
+};
+
+type SubPembelajaran = {
+  id: number;
+  courses_id: number;
+  slug: string;
 };
 
 export default function CourseIndex() {
-  // Data dummy - akan diganti dengan data dari backend
-  const courses: Course[] = [
-    {
-      id: "1",
-      name: "Terapi Dasar Parkinson",
-      thumbnail_url: "DBS.jpg",
-      progress: 2,
-      total_videos: 3,
-    },
-    {
-      id: "2",
-      name: "Latihan Lanjutan Parkinson",
-      thumbnail_url: "/gamma-knife-surgery.jpg",
-      progress: 0,
-      total_videos: 8,
-    },
-  ];
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [progress, setProgress] = useState<Record<string, number>>({});
+  const [totalVideos, setTotalVideos] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const { data: courseData } = await supabase
+        .from("courses")
+        .select("id, judul, thumbnail, slug, short_deskripsi");
+      setCourses(courseData || []);
+
+      // Fetch sub_pembelajaran for each course
+      const progressObj: Record<string, number> = {};
+      const totalObj: Record<string, number> = {};
+      for (const course of courseData || []) {
+        const { data: subs } = await supabase
+          .from("sub_pembelajaran")
+          .select("id")
+          .eq("courses_id", course.id);
+        totalObj[course.slug] = subs?.length || 0;
+
+        // Fetch user_progress for this course
+        const user = await supabase.auth.getUser();
+        const { data: userProgress } = await supabase
+          .from("user_progress")
+          .select("sub_pembelajaran, is_completed")
+          .eq("course_id", course.id)
+          .eq("user_id", user.data.user?.id || "");
+        const completed = (userProgress || []).filter(
+          (p) => p.is_completed,
+        ).length;
+        progressObj[course.slug] = completed;
+      }
+      setProgress(progressObj);
+      setTotalVideos(totalObj);
+    };
+    fetchCourses();
+  }, []);
 
   return (
     <div className="pt-18 bg-white pb-16">
@@ -50,13 +85,13 @@ export default function CourseIndex() {
               className="overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow duration-300 hover:shadow-lg"
             >
               <img
-                src={course.thumbnail_url}
-                alt={course.name}
+                src={course.thumbnail}
+                alt={course.judul}
                 className="h-48 w-full object-cover"
               />
               <div className="p-5">
                 <h2 className="mb-2 text-xl font-bold text-neutral-700">
-                  {course.name}
+                  {course.judul}
                 </h2>
                 <div className="mb-4">
                   <div className="flex items-center gap-2">
@@ -64,28 +99,35 @@ export default function CourseIndex() {
                       <div
                         className="h-2.5 rounded-full bg-blue-600"
                         style={{
-                          width: `${(course.progress / course.total_videos) * 100}%`,
+                          width: `${((progress[course.slug] || 0) / (totalVideos[course.slug] || 1)) * 100}%`,
                         }}
                       ></div>
                     </div>
-
                     <p className="font-mono font-semibold text-neutral-700">
-                      {Math.floor((course.progress / course.total_videos) * 100)}%
+                      {Math.floor(
+                        ((progress[course.slug] || 0) /
+                          (totalVideos[course.slug] || 1)) *
+                          100,
+                      )}
+                      %
                     </p>
                   </div>
-                  <p className="mt-1 text-xs font-mono text-neutral-500 uppercase">
-                    {course.progress}/{course.total_videos} video selesai
+                  <p className="mt-1 font-mono text-xs uppercase text-neutral-500">
+                    {progress[course.slug] || 0}/{totalVideos[course.slug] || 0}{" "}
+                    video selesai
                   </p>
                 </div>
                 <Link
-                  to={`/terapi/${course.id}`}
+                  to={`/terapi/${course.slug}`}
                   className={`flex w-full justify-center rounded-full px-6 py-2 shadow-inner shadow-white/50 ${
-                    course.progress > 0
+                    (progress[course.slug] || 0) > 0
                       ? "bg-amber-500 hover:bg-amber-600"
                       : "bg-blue-500 hover:bg-blue-600"
                   } font-medium text-white`}
                 >
-                  {course.progress > 0 ? "Lanjutkan" : "Mulai Terapi"}
+                  {(progress[course.slug] || 0) > 0
+                    ? "Lanjutkan"
+                    : "Mulai Terapi"}
                 </Link>
               </div>
             </div>
