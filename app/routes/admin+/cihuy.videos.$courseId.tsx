@@ -47,7 +47,7 @@ export default function AdminVideos() {
   return (
     <ProtectedRoute adminOnly>
       <div className="mx-auto bg-neutral-50">
-        <div className="fixed w-full bg-blue-700/80 p-4 text-center font-mono text-2xl font-bold uppercase text-white backdrop-blur-lg">
+        <div className="fixed w-full bg-blue-700/80 z-50 p-4 text-center font-mono text-2xl font-bold uppercase text-white backdrop-blur-lg">
           Atmint datang
         </div>
         <div className="mb-4 flex flex-col items-start gap-2 px-4 pt-20">

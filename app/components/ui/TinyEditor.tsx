@@ -44,14 +44,14 @@ export default function TinyEditor({
           "insertdatetime",
           "media",
           "table",
-          "code",
+          "codesample",
           "help",
           "wordcount",
         ],
         toolbar:
-          "undo redo | styles | formatselect | bold italic backcolor | " +
+          "undo redo | styles | formatselect | bold italic backcolor codesample | " +
           "alignleft aligncenter alignright alignjustify | " +
-          "bullist numlist outdent indent | removeformat | help",
+          "bullist numlist outdent indent | code | removeformat | help",
         placeholder: "Tulis penjelasan lengkap tentang course ini...",
         directionality: "ltr",
         content_style: "body { direction: ltr; text-align: left; }",

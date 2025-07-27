@@ -70,8 +70,7 @@ const DeteksiPage = () => {
 
         <div className="relative z-20 flex h-full w-full flex-col items-center justify-center gap-4 text-center">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-full" />
-            <span className="font-semibold text-neutral-700">PANDU‑PD</span>
+            <img src="/Logo.svg" alt="Logo" className="h-10 rounded-full" />
           </div>
           <h1 className="text-3xl font-bold text-neutral-800">
             Selamat Datang di{" "}
@@ -214,20 +213,23 @@ const DeteksiPage = () => {
                 <h1 className="font-bold">Bacalah Teks Dibawah</h1>
               </div>
               <p className="text-justify text-neutral-700">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean
-                quis enim at tortor sodales tempus eu non tortor. Phasellus nec
-                accumsan turpis. Etiam ac leo vitae ante vulputate ornare eget
-                et purus. Sed viverra urna nec accumsan lacinia. Nulla sodales
-                suscipit arcu, at congue enim dictum quis. Nullam venenatis
-                tristique nunc in convallis. Aliquam congue turpis velit, vel
-                cursus odio tempor in. Ut diam massa, fringilla vel urna non,
-                faucibus suscipit orci. Aenean hendrerit semper risus, non
-                venenatis risus congue eget. Aliquam sit amet aliquet felis,
-                eget aliquam magna. Morbi non ligula arcu. Fusce dapibus turpis
-                nulla, et suscipit justo hendrerit sed. Curabitur pellentesque
-                est ut turpis mattis, et condimentum est efficitur. Vestibulum
-                ornare ut libero a dapibus. Pellentesque sit amet scelerisque
-                dui. Suspendisse vel interdum tellus.
+                “Hal ini terjadi karena hamburan cahaya biru lebih sedikit
+                karena panjang jalur atmosfer dan tingkat hamburan radiasi yang
+                masuk berkurang. Dengan alasan yang sama, matahari tampak lebih
+                putih dan kurang berwarna oranye seiring dengan peningkatan
+                ketinggian pengamat. Hal ini terjadi karena proporsi sinar
+                matahari yang lebih besar datang langsung ke mata pengamat.
+                Gambar 5.7 adalah representasi skematik dari jalur energi
+                elektromagnetik dalam spektrum tampak saat bergerak dari
+                matahari ke Bumi dan kembali lagi menuju sensor yang dipasang
+                pada satelit yang mengorbit. Jalur gelombang yang mewakili
+                energi yang rentan terhadap hamburan (yaitu, panjang gelombang
+                yang lebih pendek) saat bergerak dari matahari ke Bumi
+                ditunjukkan. Bagi sensor, tampaknya seluruh energi tersebut
+                telah dipantulkan dari titik P di permukaan tanah padahal,
+                kenyataannya, tidak sepenuhnya demikian, karena sebagian energi
+                telah tersebar di dalam atmosfer dan tidak pernah mencapai
+                permukaan tanah sama sekali.”
               </p>
             </div>
 

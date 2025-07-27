@@ -1,8 +1,8 @@
-// app/routes/admin/form-course.tsx
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
-import TinyEditor from "~/components/ui/TinyEditor";
-
+// @ts-expect-error SummernoteLite error import.
+import SummernoteLite from "react-summernote-lite";
+import "react-summernote-lite/dist/summernote-lite.min.css";
 
 export type CourseFormData = {
   name: string;
@@ -21,13 +21,17 @@ export default function FormCourse({
   initialData = {},
 }: FormCourseProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [editorData, setEditorData] = useState(initialData.description || "");
+  const isEdit = mode === "edit";
+  const noteRef = useRef<any>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedFile(e.target.files?.[0] || null);
   };
-  const [editorData, setEditorData] = useState(initialData.description || "");
 
-  const isEdit = mode === "edit";
+  const handleEditorChange = (content: string) => {
+    setEditorData(content);
+  };
 
   return (
     <ProtectedRoute adminOnly>
@@ -65,7 +69,41 @@ export default function FormCourse({
         <div className="mb-4">
           <label className="mb-2 block text-neutral-700">
             Penjelasan Tentang Course
-            <TinyEditor value={editorData} onChange={setEditorData} />
+            <SummernoteLite
+              ref={noteRef}
+              defaultCodeValue={"<p>This is the default html value</p>"}
+              placeholder={"Write something here..."}
+              tabsize={2}
+              lang="zh-CN"
+              height={350}
+              dialogsInBody={true}
+              blockquoteBreakingLevel={0}
+              toolbar={[
+                ["style", ["style"]],
+                [
+                  "font",
+                  [
+                    "bold",
+                    "underline",
+                    "clear",
+                    "strikethrough",
+                    "superscript",
+                    "subscript",
+                  ],
+                ],
+                ["fontsize", ["fontsize"]],
+                ["fontname", ["fontname"]],
+                ["color", ["color"]],
+                ["para", ["ul", "ol", "paragraph"]],
+                ["table", ["table"]],
+                ["insert", ["link", "picture", "video", "hr"]],
+                ["view", ["codeview", "help"]],
+              ]}
+              fontNames={["Arial", "Georgia", "Verdana", "e.t.c..."]}
+              callbacks={{
+                onChange: (content: string) => handleEditorChange(content),
+              }}
+            />
             <input type="hidden" name="description" value={editorData} />
           </label>
         </div>
@@ -89,7 +127,7 @@ export default function FormCourse({
           {isEdit && (
             <button
               type="button"
-              onClick={() => window.location.reload()} // or your cancel logic
+              onClick={() => window.location.reload()}
               className="rounded-full border border-neutral-300 px-6 py-2 text-sm font-bold text-neutral-500 hover:bg-neutral-100"
             >
               Batal
