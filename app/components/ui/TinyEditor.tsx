@@ -24,7 +24,7 @@ export default function TinyEditor({
     <Editor
       apiKey="3n2rya60e0lnkahvb9hejhv7wafioku3i8hjcxkistu464d3"
       value={value}
-      onEditorChange={(content) => onChange(content)}
+      onEditorChange={(content: any) => onChange(content)}
       init={{
         height: 300,
         menubar: false,

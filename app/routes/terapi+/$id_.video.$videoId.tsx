@@ -36,7 +36,11 @@ export default function VideoPlayer() {
   );
   const [allVideos, setAllVideos] = useState<SubPembelajaran[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [completedVideos, setCompletedVideos] = useState<number[]>([]);
   const [userId, setUserId] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string>("");
+  const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,14 +79,23 @@ export default function VideoPlayer() {
           .single();
         setCurrentVideo(subData);
         if (!subData) return;
-        // Fetch user progress untuk sub_pembelajaran ini hanya jika subData ada
-        const { data: progress } = await supabase
+        // Fetch user progress untuk semua sub_pembelajaran dalam course ini
+        const { data: allProgress } = await supabase
           .from("user_progress")
-          .select("is_completed")
+          .select("sub_pembelajaran, is_completed")
           .eq("user_id", user.data.user?.id || "")
-          .eq("sub_pembelajaran", subData.id)
-          .single();
-        setIsCompleted(progress?.is_completed || false);
+          .eq("course_id", courseData.id);
+
+        const completedIds = (allProgress || [])
+          .filter((p) => p.is_completed)
+          .map((p) => p.sub_pembelajaran);
+        setCompletedVideos(completedIds);
+
+        // Check if current video is completed
+        const currentProgress = allProgress?.find(
+          (p) => p.sub_pembelajaran === subData.id,
+        );
+        setIsCompleted(currentProgress?.is_completed || false);
       } catch (err) {
         // Optional: bisa log error ke monitoring, tapi tidak tampilkan di UI
       }
@@ -104,19 +117,64 @@ export default function VideoPlayer() {
   const handleMarkCompleted = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId || !currentVideo || !course) return;
-    // Upsert user_progress
-    await supabase.from("user_progress").upsert(
-      [
-        {
-          user_id: userId,
-          course_id: course.id,
-          sub_pembelajaran: currentVideo.id,
-          is_completed: true,
-        },
-      ],
-      { onConflict: "user_id,sub_pembelajaran" },
-    );
-    setIsCompleted(true);
+
+    setIsSaving(true);
+    setSaveError("");
+
+    try {
+      // Check if progress already exists
+      const { data: existingProgress, error: checkError } = await supabase
+        .from("user_progress")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("sub_pembelajaran", currentVideo.id)
+        .maybeSingle();
+
+      let error;
+
+      if (existingProgress) {
+        // Update existing progress
+        const { error: updateError } = await supabase
+          .from("user_progress")
+          .update({ is_completed: true })
+          .eq("user_id", userId)
+          .eq("sub_pembelajaran", currentVideo.id);
+        error = updateError;
+      } else {
+        // Insert new progress
+        const { error: insertError } = await supabase
+          .from("user_progress")
+          .insert([
+            {
+              user_id: userId,
+              course_id: course.id,
+              sub_pembelajaran: currentVideo.id,
+              is_completed: true,
+            },
+          ]);
+        error = insertError;
+      }
+
+      if (error) {
+        console.error("Error saving progress:", error);
+        setSaveError("Gagal menyimpan progress. Silakan coba lagi.");
+        return;
+      }
+
+      setIsCompleted(true);
+      setCompletedVideos((prev) => [...prev, currentVideo.id]);
+
+      // Show success message
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+
+      console.log("Progress berhasil disimpan!");
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      setSaveError("Terjadi kesalahan. Silakan coba lagi.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -147,6 +205,32 @@ export default function VideoPlayer() {
             <IconChevronRight size={16} className="text-neutral-500" />
             <p className="text-amber-600">{currentVideo?.judul}</p>
           </div>
+
+          {/* Progress Bar */}
+          {course && allVideos.length > 0 && (
+            <div className="mb-6 rounded-lg bg-white p-4 shadow-sm">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-medium text-neutral-700">
+                  Progress Course
+                </h3>
+                <span className="text-sm font-medium text-neutral-600">
+                  {completedVideos.length}/{allVideos.length} video selesai
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-neutral-200">
+                <div
+                  className="h-2 rounded-full bg-blue-500 transition-all duration-300"
+                  style={{
+                    width: `${(completedVideos.length / allVideos.length) * 100}%`,
+                  }}
+                ></div>
+              </div>
+              <p className="mt-1 text-xs text-neutral-500">
+                {Math.round((completedVideos.length / allVideos.length) * 100)}%
+                selesai
+              </p>
+            </div>
+          )}
 
           {/* video */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -185,19 +269,76 @@ export default function VideoPlayer() {
                     </p>
                     <button
                       type="submit"
-                      className="rounded-full bg-blue-500 px-6 py-2 font-medium text-white shadow-inner shadow-white/50 hover:bg-blue-600"
+                      disabled={isSaving}
+                      className={`rounded-full px-6 py-2 font-medium text-white shadow-inner shadow-white/50 ${
+                        isSaving
+                          ? "cursor-not-allowed bg-gray-400"
+                          : "bg-blue-500 hover:bg-blue-600"
+                      }`}
                     >
-                      Tandai sebagai Selesai
+                      {isSaving ? "Menyimpan..." : "Tandai sebagai Selesai"}
                     </button>
                   </form>
                 )}
-                {isCompleted && (
-                  <div className="mt-4 flex items-center gap-2 font-bold text-blue-700">
-                    <IconCircleCheckFilled
-                      className="text-blue-500"
-                      size={24}
-                    />
-                    Materi ini sudah selesai dipelajari
+
+                {saveError && (
+                  <div className="mt-4 rounded-md bg-red-50 p-3">
+                    <p className="text-sm text-red-700">{saveError}</p>
+                  </div>
+                )}
+
+                {showSuccess && (
+                  <div className="mt-4 rounded-md border border-green-200 bg-green-50 p-3">
+                    <div className="flex items-center gap-2">
+                      <IconCircleCheckFilled
+                        className="text-green-500"
+                        size={20}
+                      />
+                      <p className="text-sm font-medium text-green-700">
+                        Berhasil! Video telah ditandai sebagai selesai.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {isCompleted && !showSuccess && (
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center gap-2 font-bold text-blue-700">
+                      <IconCircleCheckFilled
+                        className="text-blue-500"
+                        size={24}
+                      />
+                      Materi ini sudah selesai dipelajari
+                    </div>
+
+                    {/* Next Video Button */}
+                    {(() => {
+                      const currentIndex = allVideos.findIndex(
+                        (v) => v.id === currentVideo?.id,
+                      );
+                      const nextVideo = allVideos[currentIndex + 1];
+
+                      if (nextVideo) {
+                        return (
+                          <Link
+                            to={`/terapi/${course?.slug}/video/${nextVideo.slug}`}
+                            className="inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-2 font-medium text-white shadow-inner shadow-white/50 transition-colors hover:bg-green-600"
+                          >
+                            <span>Lanjutkan ke Video Berikutnya</span>
+                            <IconChevronRight size={16} />
+                          </Link>
+                        );
+                      }
+
+                      return (
+                        <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
+                          <p className="text-sm font-medium text-amber-700">
+                            🎉 Selamat! Anda telah menyelesaikan semua video
+                            dalam course ini.
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -227,13 +368,12 @@ export default function VideoPlayer() {
                           </p>
                           <div className="flex flex-row items-center gap-1">
                             <span className="text-neutral-500">
-                              {currentVideo?.id !== undefined &&
-                                video.id < currentVideo.id && (
-                                  <IconCircleCheckFilled
-                                    className="text-blue-500"
-                                    size={24}
-                                  />
-                                )}
+                              {completedVideos.includes(video.id) && (
+                                <IconCircleCheckFilled
+                                  className="text-blue-500"
+                                  size={24}
+                                />
+                              )}
                             </span>
                             <p>{video.durasi}</p>
                           </div>
