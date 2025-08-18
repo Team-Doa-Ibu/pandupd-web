@@ -46,6 +46,7 @@ export default {
     },
   },
   plugins: [
+    require("tailwind-scrollbar"),
     require("@tailwindcss/typography"),
     plugin(function ({ addUtilities, theme }) {
       const delays = theme("animationDelay");

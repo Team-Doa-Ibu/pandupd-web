@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useFetcher } from "@remix-run/react";
 import ReactMarkdown from "react-markdown";
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([
     {
@@ -14,8 +15,10 @@ export function ChatBot() {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const fetcher = useFetcher();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Handle API response
+  // Handle API response and auto-scroll
   useEffect(() => {
     if (fetcher.data) {
       setIsLoading(false);
@@ -40,8 +43,24 @@ export function ChatBot() {
     }
   }, [fetcher.data]);
 
+  // Auto-scroll to bottom when chat history changes or when loading starts/stops
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory, isLoading]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const toggleChat = () => {
     setIsOpen(!isOpen);
+    if (!isOpen) {
+      setIsExpanded(false);
+    }
+  };
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -50,23 +69,55 @@ export function ChatBot() {
 
     const userMessage = message.trim();
 
-    // Menambahkan pesan pengguna ke riwayat
     setChatHistory((prev) => [...prev, { type: "user", content: userMessage }]);
-
-    // Reset input pesan
     setMessage("");
     setIsLoading(true);
 
-    // Kirim pesan ke API
     fetcher.submit(
       { message: userMessage },
       { method: "post", action: "/api/chat" },
     );
   };
 
+  // itung ukuran dinamis
+  const getChatDimensions = () => {
+    if (typeof window === "undefined") return {};
+
+    const isMobile = window.innerWidth < 640;
+
+    if (isExpanded) {
+      return {
+        width: isMobile ? "calc(100vw - 32px)" : "90vw",
+        height: "90vh",
+        maxWidth: "1200px",
+        maxHeight: "800px",
+        position: "fixed" as const,
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 60,
+      };
+    }
+
+   return {
+     width: isMobile ? "calc(100vw - 32px)" : "384px",
+     maxWidth: "600px", 
+     height: "500px",
+     bottom: isMobile ? "80px" : "96px",
+     right: isMobile ? "16px" : "24px",
+     left: isMobile ? "16px" : undefined, 
+   };
+
+  };
+
   return (
     <>
-      {/* Tombol Chat - hanya gambar tanpa background */}
+      {/* Overlay HYTAM */}
+      {isOpen && (
+        <div className="fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity" />
+      )}
+
+      {/* Tombol Chat */}
       <button
         onClick={toggleChat}
         className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center border-none bg-transparent p-0 transition-all"
@@ -77,32 +128,64 @@ export function ChatBot() {
 
       {/* Modal Chat */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 flex max-h-[500px] w-80 flex-col overflow-hidden rounded-xl bg-white shadow-xl sm:w-96">
+        <div
+          ref={chatContainerRef}
+          className="fixed z-50 flex flex-col overflow-hidden rounded-xl bg-white shadow-xl transition-all duration-300"
+          style={{
+            ...getChatDimensions(),
+          }}
+        >
           {/* Header */}
           <div className="flex items-center justify-between border-b bg-white p-4">
             <div className="flex items-center gap-2">
               <img src="/logo.png" alt="Logo" className="h-8 w-8" />
               <span className="font-bold text-gray-800">Pandu-PD AI</span>
             </div>
-            <button
-              onClick={toggleChat}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleExpand}
+                className="text-gray-500 hover:text-gray-700"
+                aria-label={isExpanded ? "Minimize" : "Maximize"}
               >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {isExpanded ? (
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                  ) : (
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                  )}
+                </svg>
+              </button>
+              <button
+                onClick={toggleChat}
+                className="text-gray-500 hover:text-gray-700"
+                aria-label="Close"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Chat Messages */}
@@ -138,7 +221,6 @@ export function ChatBot() {
                 </div>
               ))}
 
-              {/* Loading indicator */}
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="max-w-[80%] rounded-lg border border-gray-200 bg-white p-3 text-gray-800">
@@ -156,24 +238,30 @@ export function ChatBot() {
                   </div>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
           </div>
 
-          {/* Input Form - Diubah sesuai gambar */}
-          <form onSubmit={handleSubmit} className="border-t bg-white p-0">
-            <div className="bg-white-800 relative mx-2 my-2 rounded-lg shadow">
-              <input
-                type="text"
-                placeholder="Tanyakan Apa saja terkait aplikasi ini..."
-                className="w-full border-none bg-transparent px-4 py-3 text-black focus:outline-none"
+          {/* Input Form */}
+          <form onSubmit={handleSubmit} className="border-t bg-white p-2">
+            <div className="flex w-full items-center gap-2 rounded-lg bg-white p-2 shadow">
+              <textarea
+                placeholder="Tanyakan apa saja terkait aplikasi ini..."
+                className="scrollbar-thin scrollbar-thumb-gray-300 flex-1 resize-none border-none bg-transparent text-black focus:outline-none"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
+                }}
                 disabled={isLoading}
+                rows={1}
+                style={{ minHeight: "48px", maxHeight: "150px" }}
               />
               <button
                 type="submit"
-                disabled={isLoading}
-                className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center rounded-full bg-orange-400 text-white hover:bg-orange-500 disabled:bg-gray-400"
+                disabled={isLoading || !message.trim()}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-400 text-white hover:bg-orange-500 disabled:bg-gray-400"
               >
                 {isLoading ? (
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
