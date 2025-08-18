@@ -1,123 +1,190 @@
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
 
-export function ScreeningChatBot() {
+export type ScreeningChatBotProps = {
+  vm?: {
+    isDetected?: boolean;
+    imageSrc?: string;
+    confidenceScore?: number;
+  } | null;
+  hm?: {
+    isDetected?: boolean;
+    imageSrc?: string;
+    confidenceScore?: number;
+  } | null;
+};
+
+export function ScreeningChatBot({ vm, hm }: ScreeningChatBotProps) {
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState([
     {
       type: "system",
-      content: "Hasil skrining Anda menunjukkan adanya indikasi penyakit Parkinson. Perlu diingat bahwa ini adalah skrining awal dan bukan diagnosis medis. Silakan konsultasikan hasil ini dengan dokter spesialis untuk evaluasi lebih lanjut.",
+      content:
+        "Hasil skrining Anda siap dibahas. Ingat, ini skrining awal dan bukan diagnosis. Tanyakan apa pun tentang hasil ini atau langkah selanjutnya.",
     },
-  ]);
+  ] as { type: "system" | "user"; content: string }[]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || isLoading) return;
 
-    // Menambahkan pesan pengguna ke riwayat
-    setChatHistory([...chatHistory, { type: "user", content: message }]);
-    
-    // Reset input pesan
+    const userMessage = message.trim();
+    setChatHistory((prev) => [...prev, { type: "user", content: userMessage }]);
     setMessage("");
-    
-    // Simulasi respons bot (dalam implementasi nyata, ini akan memanggil API)
-    setTimeout(() => {
-      // Logika sederhana untuk respons chatbot
-      let botResponse = "Maaf, saya tidak mengerti pertanyaan Anda. Bisa dijelaskan lebih detail?";
-      
-      const userInput = message.toLowerCase();
-      if (userInput.includes("terapi") || userInput.includes("pengobatan")) {
-        botResponse = "Untuk terapi Parkinson, kami menyarankan konsultasi dengan dokter spesialis saraf. Anda juga bisa melihat rekomendasi terapi di halaman Terapi kami.";
-      } else if (userInput.includes("hasil") || userInput.includes("skrining")) {
-        botResponse = "Hasil skrining hanya bersifat indikatif. Untuk diagnosis resmi, diperlukan pemeriksaan medis oleh dokter spesialis.";
-      } else if (userInput.includes("gejala") || userInput.includes("tanda")) {
-        botResponse = "Gejala umum Parkinson meliputi tremor, kekakuan otot, dan gerakan yang melambat. Namun, setiap orang mungkin mengalami gejala yang berbeda.";
-      }
+    setIsLoading(true);
 
-      setChatHistory(prev => [
-        ...prev, 
-        { 
-          type: "system", 
-          content: botResponse
-        }
+    try {
+      const res = await fetch("/api/screening-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage, vm, hm }),
+      });
+      const data = await res.json();
+      if (data?.success && data?.response) {
+        setChatHistory((prev) => [
+          ...prev,
+          { type: "system", content: String(data.response) },
+        ]);
+      } else {
+        setChatHistory((prev) => [
+          ...prev,
+          {
+            type: "system",
+            content: "❌ Maaf, terjadi kendala. Coba lagi nanti.",
+          },
+        ]);
+      }
+    } catch (err) {
+      setChatHistory((prev) => [
+        ...prev,
+        { type: "system", content: "❌ Gagal terhubung ke layanan AI." },
       ]);
-    }, 500);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <section className="bg-gray-50 py-12">
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-2">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="mb-2 text-center text-2xl font-bold">
             Tanya <span className="text-orange-400">Asisten Virtual</span>
           </h2>
-          <p className="text-gray-600 text-center mb-8">
-            Jika Anda memiliki pertanyaan tentang hasil skrining atau penyakit Parkinson, silakan tanyakan pada asisten virtual kami.
+          <p className="mb-8 text-center text-gray-600">
+            Ajukan pertanyaan terkait hasil skrining Anda. Jawaban akan
+            mempertimbangkan konteks hasil Anda.
           </p>
 
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="overflow-hidden rounded-xl bg-white shadow-md">
             {/* Header */}
-            <div className="bg-white p-4 border-b flex items-center justify-between">
+            <div className="flex items-center justify-between border-b bg-white p-4">
               <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="Logo" className="w-8 h-8" />
+                <img src="/logo.png" alt="Logo" className="h-8 w-8" />
                 <span className="font-bold text-gray-800">PANDU-PD AI</span>
               </div>
             </div>
 
             {/* Chat Messages */}
-            <div className="h-80 overflow-y-auto p-4 bg-gray-50">
+            <div className="h-80 overflow-y-auto bg-gray-50 p-4">
               <div className="space-y-4">
                 {chatHistory.map((chat, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className={`flex ${chat.type === "user" ? "justify-end" : "justify-start"}`}
                   >
-                    <div 
-                      className={`max-w-[80%] p-3 rounded-lg ${
-                        chat.type === "user" 
-                          ? "bg-yellow-400 text-gray-800" 
-                          : "bg-white text-gray-800 border border-gray-200"
+                    <div
+                      className={`max-w-[80%] rounded-lg p-3 ${
+                        chat.type === "user"
+                          ? "bg-yellow-400 text-gray-800"
+                          : "border border-gray-200 bg-white text-gray-800"
                       }`}
                     >
                       {chat.type === "system" && index === 0 ? (
                         <div>
-                          <div className="font-bold mb-1">Hasil Skrining Anda</div>
+                          <div className="mb-1 font-bold">
+                            Ringkasan Hasil Skrining
+                          </div>
                           <p>{chat.content}</p>
                         </div>
                       ) : (
-                        <p>{chat.content}</p>
+                        <div className="prose prose-sm max-w-none">
+                          <ReactMarkdown>{chat.content}</ReactMarkdown>
+                        </div>
                       )}
                     </div>
                   </div>
                 ))}
+
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[80%] rounded-lg border border-gray-200 bg-white p-3 text-gray-800">
+                      <div className="flex items-center space-x-2">
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
+                        <div
+                          className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Input Form */}
-            <form onSubmit={handleSubmit} className="p-0 bg-white border-t">
-              <div className="relative bg-white-800 rounded-lg mx-2 my-2 shadow">
+            <form onSubmit={handleSubmit} className="border-t bg-white p-0">
+              <div className="bg-white-800 relative mx-2 my-2 rounded-lg shadow">
                 <input
                   type="text"
-                  placeholder="Tanyakan Apa saja terkait hasil skrining Anda..."
-                  className="w-full border-none py-3 px-4 focus:outline-none text-black bg-transparent"
+                  placeholder="Tanyakan apa saja terkait hasil Anda..."
+                  className="w-full border-none bg-transparent px-4 py-3 text-black focus:outline-none"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
+                  disabled={isLoading}
                 />
-                <button 
+                <button
                   type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-orange-400 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-orange-500"
+                  disabled={isLoading}
+                  className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center rounded-full bg-orange-400 text-white hover:bg-orange-500 disabled:bg-gray-400"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 2L11 13"></path>
-                    <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
-                  </svg>
+                  {isLoading ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M22 2L11 13"></path>
+                      <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+                    </svg>
+                  )}
                 </button>
               </div>
             </form>
           </div>
 
           <div className="mt-6 text-center text-sm text-gray-500">
-            <p>Asisten virtual ini menggunakan AI untuk memberikan informasi umum tentang penyakit Parkinson.</p>
-            <p className="mt-1">Untuk konsultasi medis, silakan hubungi dokter atau tenaga medis profesional.</p>
+            <p>
+              Asisten virtual ini menggunakan AI untuk memberikan informasi umum
+              berdasarkan hasil skrining Anda.
+            </p>
+            <p className="mt-1">
+              Untuk konsultasi medis, silakan hubungi dokter atau tenaga medis
+              profesional.
+            </p>
           </div>
         </div>
       </div>

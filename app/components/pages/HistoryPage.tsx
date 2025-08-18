@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { TestTypeBadge, ConfidenceScoreBadge } from '../ui/Badge';
+import React, { useState, useRef, useEffect } from "react";
+import { useFetcher } from "@remix-run/react";
+import { TestTypeBadge, ConfidenceScoreBadge } from "../ui/Badge";
+import { supabase } from "../../data/supabaseClient";
 
 // Tipe data untuk item riwayat
 interface HistoryItem {
@@ -9,6 +11,8 @@ interface HistoryItem {
   testType: string;
   result: string;
   score?: number;
+  showDateAndAction: boolean;
+  rowSpan?: number;
 }
 
 // Komponen Button Buka
@@ -54,43 +58,16 @@ interface HistoryPageProps {
 
 export default function HistoryPage({ initialData = [] }: HistoryPageProps) {
   // State untuk data
-  const [historyData] = useState<HistoryItem[]>(
-    initialData.length > 0
-      ? initialData
-      : [
-          {
-            id: "1",
-            date: "22 Juni 2023",
-            time: "10:30 WIB",
-            testType: "Gambar",
-            result: "Sehat",
-            score: 79,
-          },
-          {
-            id: "2",
-            date: "22 Juni 2023",
-            time: "13:15 WIB",
-            testType: "Suara",
-            result: "Sehat",
-            score: 82,
-          },
-          {
-            id: "3",
-            date: "22 Juni 2023",
-            time: "21:55 WIB",
-            testType: "Gambar",
-            result: "Parkinson",
-            score: 65,
-          },
-        ],
-  );
+  const [historyData, setHistoryData] = useState<HistoryItem[]>(initialData);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   // State untuk filter dan pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   // Hitung total halaman
-  const totalPages = Math.ceil(historyData.length / itemsPerPage);
+  const totalPages = Math.ceil(historyData.length / itemsPerPage) || 1;
 
   // Dapatkan data untuk halaman saat ini
   const currentData = historyData.slice(
@@ -98,31 +75,231 @@ export default function HistoryPage({ initialData = [] }: HistoryPageProps) {
     currentPage * itemsPerPage,
   );
 
-  // Fungsi untuk menangani perubahan halaman
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
 
+  const formatDateDisplay = (isoString: string) => {
+    const date = new Date(isoString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return { date: `${day}/${month}/${year}`, time: `${hours}:${minutes} WIB` };
+  };
+
+  // Fetch data dari Supabase dan transform ke tampilan
+  useEffect(() => {
+    let isMounted = true;
+    const fetchHistory = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const { data: userResp, error: userErr } =
+          await supabase.auth.getUser();
+        // Debug user
+        console.log("[History] getUser error:", userErr);
+        console.log("[History] userResp:", userResp);
+        const user = userResp?.user;
+        if (!user) {
+          console.log("[History] No user logged in");
+          setHistoryData([]);
+          setIsLoading(false);
+          return;
+        }
+        console.log("[History] Current user id:", user.id);
+
+        // Ambil data dari tabel form milik user ini
+        const { data, error: dbError } = await supabase
+          .from("form")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        // Debug query
+        console.log("[History] form query error:", dbError);
+        console.log("[History] form rows:", data);
+
+        if (dbError) throw dbError;
+
+        const items: HistoryItem[] = [];
+        for (const row of data || []) {
+          const { date, time } = formatDateDisplay(row.created_at as string);
+
+          const hasVm =
+            row.Hasil_Diagnosa_vm !== null ||
+            row.Score_Diagnosa_vm !== null ||
+            row.File_Diagnosa_vm !== null;
+          const hasHm =
+            row.Hasil_Diagnosa_hm !== null ||
+            row.Score_Diagnosa_hm !== null ||
+            row.File_Diagnosa_hm !== null;
+
+          if (hasVm && hasHm) {
+            // Baris VM (tampilkan tanggal & aksi) - rowSpan 2 untuk gabungkan tanggal & aksi
+            {
+              const scoreNum = row.Score_Diagnosa_vm
+                ? Number(String(row.Score_Diagnosa_vm).replace(/[^0-9.]/g, ""))
+                : undefined;
+              const resultStr =
+                row.Hasil_Diagnosa_vm === true
+                  ? "Parkinson"
+                  : row.Hasil_Diagnosa_vm === false
+                    ? "Sehat"
+                    : "Tidak diketahui";
+              items.push({
+                id: `${row.id}-vm`,
+                date,
+                time,
+                testType: "Suara",
+                result: resultStr,
+                score:
+                  typeof scoreNum === "number" && !Number.isNaN(scoreNum)
+                    ? scoreNum
+                    : undefined,
+                showDateAndAction: true,
+                rowSpan: 2,
+              });
+            }
+            // Baris HM (sembunyikan tanggal & aksi)
+            {
+              const scoreNum = row.Score_Diagnosa_hm
+                ? Number(String(row.Score_Diagnosa_hm).replace(/[^0-9.]/g, ""))
+                : undefined;
+              const resultStr =
+                row.Hasil_Diagnosa_hm === true
+                  ? "Parkinson"
+                  : row.Hasil_Diagnosa_hm === false
+                    ? "Sehat"
+                    : "Tidak diketahui";
+              items.push({
+                id: `${row.id}-hm`,
+                date,
+                time,
+                testType: "Gambar",
+                result: resultStr,
+                score:
+                  typeof scoreNum === "number" && !Number.isNaN(scoreNum)
+                    ? scoreNum
+                    : undefined,
+                showDateAndAction: false,
+                rowSpan: 0,
+              });
+            }
+          } else if (hasVm) {
+            const scoreNum = row.Score_Diagnosa_vm
+              ? Number(String(row.Score_Diagnosa_vm).replace(/[^0-9.]/g, ""))
+              : undefined;
+            const resultStr =
+              row.Hasil_Diagnosa_vm === true
+                ? "Parkinson"
+                : row.Hasil_Diagnosa_vm === false
+                  ? "Sehat"
+                  : "Tidak diketahui";
+            items.push({
+              id: `${row.id}-vm`,
+              date,
+              time,
+              testType: "Suara",
+              result: resultStr,
+              score:
+                typeof scoreNum === "number" && !Number.isNaN(scoreNum)
+                  ? scoreNum
+                  : undefined,
+              showDateAndAction: true,
+              rowSpan: 1,
+            });
+          } else if (hasHm) {
+            const scoreNum = row.Score_Diagnosa_hm
+              ? Number(String(row.Score_Diagnosa_hm).replace(/[^0-9.]/g, ""))
+              : undefined;
+            const resultStr =
+              row.Hasil_Diagnosa_hm === true
+                ? "Parkinson"
+                : row.Hasil_Diagnosa_hm === false
+                  ? "Sehat"
+                  : "Tidak diketahui";
+            items.push({
+              id: `${row.id}-hm`,
+              date,
+              time,
+              testType: "Gambar",
+              result: resultStr,
+              score:
+                typeof scoreNum === "number" && !Number.isNaN(scoreNum)
+                  ? scoreNum
+                  : undefined,
+              showDateAndAction: true,
+              rowSpan: 1,
+            });
+          }
+        }
+
+        // Debug hasil mapping
+        console.log("[History] transformed items:", items);
+
+        if (isMounted) setHistoryData(items);
+      } catch (err) {
+        console.error("[History] fetch error:", err);
+        if (isMounted) setError("Gagal memuat riwayat. Silakan coba lagi.");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchHistory();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Fungsi untuk menangani perubahan halaman
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}`;
+    return `${date.getDate().toString().padStart(2, "0")}/${(
+      date.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}/${date.getFullYear()}`;
   };
+
+  const fetcher = useFetcher();
 
   // Handler untuk tombol aksi
   const handleOpenItem = (id: string) => {
-    console.log(`Membuka item dengan id: ${id}`);
-    // Implementasi navigasi ke halaman detail
+    const [rowId, kind] = id.split("-");
+    const baseId = Number(rowId);
+    const type = kind === "vm" ? "suara" : "gambar";
+    fetcher.submit(
+      { id: String(baseId), type },
+      { method: "post", action: "/screening-result" },
+    );
   };
 
-  const handleDeleteItem = (id: string) => {
-    console.log(`Menghapus item dengan id: ${id}`);
-    // Implementasi penghapusan item
+  const handleDeleteItem = async (id: string) => {
+    try {
+      const [rowId] = id.split("-");
+      const baseId = Number(rowId);
+      // Hapus seluruh record form untuk id tersebut
+      const { error } = await supabase.from("form").delete().eq("id", baseId);
+      if (error) throw error;
+      // Refresh list lokal
+      setHistoryData((prev) =>
+        prev.filter((it) => !it.id.startsWith(`${baseId}-`)),
+      );
+    } catch (e) {
+      console.error("Gagal menghapus item:", e);
+      alert("Gagal menghapus item");
+    }
   };
 
   return (
@@ -215,30 +392,71 @@ export default function HistoryPage({ initialData = [] }: HistoryPageProps) {
               </tr>
             </thead>
             <tbody>
-              {currentData.map((item) => (
-                <tr key={item.id} className="hover:bg-neutral-50">
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <div className="text-sm font-medium text-neutral-900">
-                      {item.date}
-                    </div>
-                    <div className="text-sm text-neutral-500">{item.time}</div>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <TestTypeBadge type={item.testType} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <ConfidenceScoreBadge score={item.score || 0} result={item.result} />
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
-                    <div className="flex items-center justify-end space-x-2">
-                      <OpenButton onClick={() => handleOpenItem(item.id)} />
-                      <DeleteButton onClick={() => handleDeleteItem(item.id)} />
-                    </div>
+              {isLoading && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-6 text-center text-neutral-500"
+                  >
+                    Memuat data...
                   </td>
                 </tr>
-              ))}
+              )}
 
-              {currentData.length === 0 && (
+              {!isLoading && error && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-6 text-center text-red-500"
+                  >
+                    {error}
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading &&
+                !error &&
+                currentData.map((item) => (
+                  <tr key={item.id} className="hover:bg-neutral-50">
+                    {item.showDateAndAction ? (
+                      <td
+                        className="whitespace-nowrap px-6 py-4"
+                        rowSpan={item.rowSpan || 1}
+                      >
+                        <div className="text-sm font-medium text-neutral-900">
+                          {item.date}
+                        </div>
+                        <div className="text-sm text-neutral-500">
+                          {item.time}
+                        </div>
+                      </td>
+                    ) : null}
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <TestTypeBadge type={item.testType} />
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <ConfidenceScoreBadge
+                        score={item.score || 0}
+                        result={item.result}
+                      />
+                    </td>
+                    {item.showDateAndAction ? (
+                      <td
+                        className="whitespace-nowrap px-6 py-4 text-right text-sm"
+                        rowSpan={item.rowSpan || 1}
+                      >
+                        <div className="flex items-center justify-end space-x-2">
+                          <OpenButton onClick={() => handleOpenItem(item.id)} />
+                          <DeleteButton
+                            onClick={() => handleDeleteItem(item.id)}
+                          />
+                        </div>
+                      </td>
+                    ) : null}
+                  </tr>
+                ))}
+
+              {!isLoading && !error && currentData.length === 0 && (
                 <tr>
                   <td
                     colSpan={4}
