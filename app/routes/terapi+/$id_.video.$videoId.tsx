@@ -7,8 +7,6 @@ import {
   IconList,
 } from "@tabler/icons-react";
 import { Navbar } from "~/components/ui/Navbar";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 // Tipe data untuk video (akan disediakan oleh backend)
 type Course = {
@@ -97,7 +95,7 @@ export default function VideoPlayer() {
         );
         setIsCompleted(currentProgress?.is_completed || false);
       } catch (err) {
-        // Optional: bisa log error ke monitoring, tapi tidak tampilkan di UI
+        // Optional: can log
       }
     };
     fetchData();
@@ -156,7 +154,6 @@ export default function VideoPlayer() {
       }
 
       if (error) {
-        console.error("Error saving progress:", error);
         setSaveError("Gagal menyimpan progress. Silakan coba lagi.");
         return;
       }
@@ -167,10 +164,7 @@ export default function VideoPlayer() {
       // Show success message
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-
-      console.log("Progress berhasil disimpan!");
     } catch (error) {
-      console.error("Unexpected error:", error);
       setSaveError("Terjadi kesalahan. Silakan coba lagi.");
     } finally {
       setIsSaving(false);
@@ -253,11 +247,12 @@ export default function VideoPlayer() {
                   <span>#{currentVideo?.no_urut} </span>
                   {currentVideo?.judul}
                 </h1>
-                <div className="prose prose-neutral max-w-none rounded-md bg-neutral-50 p-4">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {currentVideo?.konten}
-                  </ReactMarkdown>
-                </div>
+                <div
+                  className="prose prose-neutral max-w-none rounded-md bg-neutral-50 p-4"
+                  dangerouslySetInnerHTML={{
+                    __html: currentVideo?.konten || "",
+                  }}
+                />
 
                 {!isCompleted && (
                   <form

@@ -54,9 +54,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return json({ error: "Message is required" }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.VITE_GEMINI_API_KEY;
+    console.log("[api.chat] Environment check:", {
+      VITE_GEMINI_API_KEY: apiKey ? "SET" : "NOT SET",
+      NODE_ENV: process.env.NODE_ENV,
+    });
     if (!apiKey) {
-      console.error("GEMINI_API_KEY not found in environment variables");
+      console.error("VITE_GEMINI_API_KEY not found in environment variables");
       return json({ error: "Gemini API key not configured" }, { status: 500 });
     }
 

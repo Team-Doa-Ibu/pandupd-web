@@ -21,7 +21,7 @@ export default function Audio({ onConfirm }: AudioProps) {
   const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [uploadedAudio, setUploadedAudio] = useState<File | null>(null);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(120);
   const [mode, setMode] = useState<"idle" | "record" | "upload">("idle");
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -133,7 +133,7 @@ export default function Audio({ onConfirm }: AudioProps) {
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      setTimeLeft(60);
+      setTimeLeft(120);
       setMode("record");
     } catch (err) {
       console.error("❌ Error accessing microphone:", err);
@@ -198,7 +198,6 @@ export default function Audio({ onConfirm }: AudioProps) {
       setIsConfirmed(true);
     }
   };
-  
 
   const handleReset = () => {
     waveformRef.current?.stop();
@@ -207,7 +206,7 @@ export default function Audio({ onConfirm }: AudioProps) {
     setUploadedAudio(null);
     setAudioUrl(null);
     setMode("idle");
-    setTimeLeft(60);
+    setTimeLeft(120);
     setIsPlaying(false);
     setIsConfirmed(false);
   };

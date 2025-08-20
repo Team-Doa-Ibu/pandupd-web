@@ -8,11 +8,14 @@ import {
 import Spiral from "../tools/spiral";
 import Audio from "../tools/audio";
 import { useState } from "react";
+import ProgressLoading from "../ui/progress-loading";
+import { supabase } from "~/data/supabaseClient";
 
 const DeteksiPage = () => {
   const [spiralSvg, setSpiralSvg] = useState<string | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   const handleSpiralConfirm = (svg: string) => {
     setSpiralSvg(svg);
@@ -22,22 +25,107 @@ const DeteksiPage = () => {
     setAudioFile(file);
   };
 
+  const triggerDownload = (url: string) => {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = url.split("/").pop() || "download";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const postToSession = async (id: number, type?: string) => {
+    const form = new FormData();
+    form.append("id", String(id));
+    if (type) form.append("type", type);
+    await fetch("/screening-result", { method: "POST", body: form });
+    window.location.href = "/screening-result";
+  };
+
   const handleSubmit = async () => {
     if (!spiralSvg && !audioFile) return;
-
     setIsSubmitting(true);
+    setShowOverlay(true);
 
     try {
-      // Simulasi
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("[deteksi] submitting...");
+      // Get current user for headers
+      const { data: userResp } = await supabase.auth.getUser();
+      const user = userResp?.user;
 
-      // Generate a mock ID for navigation
-      const resultId = Date.now().toString();
+      if (!user) {
+        throw new Error("AUTH_ERROR: Belum login");
+      }
 
-      // Navigate to results page
-      console.log(`Navigating to: /deteksi/hasil/${resultId}`);
-    } catch (error) {
-      console.error("Submit error:", error);
+      const form = new FormData();
+      if (spiralSvg) form.append("spiralSvg", spiralSvg);
+      if (audioFile) form.append("audio", audioFile);
+      const res = await fetch("/api/deteksi-submit", {
+        method: "POST",
+        headers: {
+          "x-user-id": user.id, // Send user ID in headers
+        },
+        body: form,
+      });
+      const text = await res.text();
+      let model: any = null;
+      try {
+        model = JSON.parse(text);
+      } catch (e) {
+        console.error("[deteksi] parse error from server:", e, text);
+        throw new Error("RESP_PARSE_ERROR");
+      }
+      if (!res.ok || !model?.success) {
+        console.error("[deteksi] server/model error:", model);
+        if (model?.error_type === "config")
+          throw new Error("CONFIG_ERROR: API_MODEL_URL missing");
+        if (model?.error_type === "network")
+          throw new Error("NETWORK_ERROR: gagal konek ke model API");
+        if (model?.error_type === "http_status")
+          throw new Error(`HTTP_STATUS_ERROR: ${model?.details || ""}`);
+        if (model?.error_type === "parse")
+          throw new Error("MODEL_JSON_PARSE_ERROR");
+        throw new Error(model?.error || "UNKNOWN_MODEL_ERROR");
+      }
+
+      console.log("[deteksi] model response:", model);
+      console.log("[deteksi] raw values:", {
+        vm_prediction: model.vm_prediction,
+        vm_confidence: model.vm_confidence,
+        hw_prediction: model.hw_prediction,
+        hw_confidence: model.hw_confidence,
+      });
+      console.log("[deteksi] confidence conversions:", {
+        vm_confidence_raw: model.vm_confidence,
+        vm_confidence_type: typeof model.vm_confidence,
+        vm_confidence_converted:
+          model.vm_confidence === null || model.vm_confidence === undefined
+            ? null
+            : `${model.vm_confidence}`,
+        hw_confidence_raw: model.hw_confidence,
+        hw_confidence_type: typeof model.hw_confidence,
+        hw_confidence_converted:
+          model.hw_confidence === null || model.hw_confidence === undefined
+            ? null
+            : `${model.hw_confidence}`,
+      });
+
+      // Data already inserted in API endpoint
+      console.log(
+        "[deteksi] data already inserted in API with ID:",
+        model.inserted_id,
+      );
+
+      setShowOverlay(false);
+      await postToSession(model.inserted_id, undefined);
+    } catch (error: any) {
+      console.error("[deteksi] submit failed:", error);
+      const msg =
+        typeof error?.message === "string"
+          ? error.message
+          : "Gagal memproses. Coba lagi.";
+      alert(msg);
+      setShowOverlay(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -50,10 +138,114 @@ const DeteksiPage = () => {
 
   return (
     <div className="flex w-full flex-col items-center pt-20">
+      {showOverlay && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-white/75">
+          <div className="w-full max-w-6xl p-8">
+            <div className="rounded-[32px] border border-blue-300 bg-gradient-to-br from-white to-blue-50 p-8">
+              {/* Header */}
+              <div className="mb-6 text-center">
+                <div className="mx-auto mb-5 h-24 w-24 animate-spin rounded-full border-8 border-gray-100 border-t-blue-500"></div>
+                <h2 className="mb-2 text-2xl font-bold text-neutral-800">
+                  Menganalisis Data...
+                </h2>
+                <p className="text-neutral-600">
+                  Mohon tunggu, ini dapat memakan waktu beberapa detik
+                </p>
+              </div>
+
+              {/* Progress Section */}
+              <div className="rounded-2xl border border-neutral-200 bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="font-semibold text-neutral-700">
+                    Status Deteksi
+                  </h3>
+                  <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+                    {completedTests}/2 Selesai
+                  </span>
+                </div>
+
+                <div className="mb-4 space-y-3">
+                  {/* Spiral Status */}
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`rounded-full p-2 ${spiralSvg ? "bg-green-100" : "bg-neutral-100"}`}
+                    >
+                      {spiralSvg ? (
+                        <IconCheck size={20} className="text-green-600" />
+                      ) : (
+                        <img
+                          src="spiral-icon.svg"
+                          alt="spiral"
+                          className="h-5 w-5 opacity-50"
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p
+                        className={`font-medium ${spiralSvg ? "text-green-700" : "text-neutral-500"}`}
+                      >
+                        Analisis Gambar Spiral
+                      </p>
+                      <p
+                        className={`text-sm ${spiralSvg ? "text-green-600" : "text-neutral-400"}`}
+                      >
+                        {spiralSvg
+                          ? "Gambar spiral berhasil dibuat"
+                          : "Belum menggambar spiral"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Audio Status */}
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`rounded-full p-2 ${audioFile ? "bg-green-100" : "bg-neutral-100"}`}
+                    >
+                      {audioFile ? (
+                        <IconCheck size={20} className="text-green-600" />
+                      ) : (
+                        <img
+                          src="audio-icon.svg"
+                          alt="audio"
+                          className="h-5 w-5 opacity-50"
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p
+                        className={`font-medium ${audioFile ? "text-green-700" : "text-neutral-500"}`}
+                      >
+                        Analisis Suara
+                      </p>
+                      <p
+                        className={`text-sm ${audioFile ? "text-green-600" : "text-neutral-400"}`}
+                      >
+                        {audioFile
+                          ? `File audio: ${audioFile.name}`
+                          : "Belum merekam atau mengunggah audio"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full">
+                  <div className="h-3 w-full overflow-hidden rounded-full bg-neutral-200">
+                    <div
+                      className="h-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500 ease-out"
+                      style={{ width: `${(completedTests / 2) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Hero Section*/}
       <section
         className="relative mx-auto flex w-full max-w-6xl items-center justify-center overflow-hidden bg-white p-4"
-        style={{ minHeight: "60vh" }}
+        style={{ minHeight: "30vh" }}
       >
         {/* Dot Background */}
         <div
@@ -170,7 +362,7 @@ const DeteksiPage = () => {
                   Pastikan anda mengizinkan akses mikrofon pada browser anda
                 </li>
                 <li>
-                  Bacalah teks yang tersedia sampai selesai atau sepanjang satu
+                  Bacalah teks yang tersedia sampai selesai atau sepanjang dua
                   menit
                 </li>
                 <li>

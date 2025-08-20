@@ -1,16 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "@remix-run/react";
 import { supabase } from "../../data/supabaseClient";
-import {
-  IconBook,
-  IconChevronRight,
-  IconList,
-  IconPlayerPlayFilled,
-} from "@tabler/icons-react";
+import { IconBook, IconChevronRight } from "@tabler/icons-react";
 import { Footer } from "~/components/ui/footer";
 import { Navbar } from "~/components/ui/Navbar";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 // Tipe data untuk video (akan disediakan oleh backend)
 type Video = {
@@ -146,18 +139,16 @@ export default function CourseDetail() {
                 <IconBook className="text-neutral-700" />
                 tentang kelas
               </h1>
-              <div className="prose prose-neutral max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {(course.deskripsi || "").replaceAll("\\n", "\n")}
-                </ReactMarkdown>
-              </div>
+              <div
+                className="prose prose-neutral max-w-none"
+                dangerouslySetInnerHTML={{ __html: course.deskripsi || "" }}
+              />
             </div>
           </div>
 
           {/* video list container */}
           <div className="mx-auto w-full max-w-6xl rounded-xl border border-neutral-300 bg-white p-4">
             <div className="flex gap-2">
-              <IconList className="text-blue-500" size={24} />
               <h2 className="mb-4 text-xl font-bold text-blue-500">
                 Daftar Video
               </h2>
@@ -173,10 +164,9 @@ export default function CourseDetail() {
                       <div className="flex w-full items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500">
-                            <IconPlayerPlayFilled
-                              className="text-white"
-                              size={18}
-                            />
+                            <span className="text-sm font-bold text-white">
+                              ▶
+                            </span>
                           </div>
                           <h3 className="line-clamp-2 text-neutral-700">
                             <span className="mx-1">#{video.no_urut}</span>

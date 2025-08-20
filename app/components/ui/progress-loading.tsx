@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 interface ProgressLoadingProps {
   title?: string;
@@ -8,6 +8,7 @@ interface ProgressLoadingProps {
   spinnerColor?: string;
   progressColor?: string;
   onLoadingComplete?: () => void;
+  overlay?: boolean; // if true, render transparent overlay
 }
 
 export default function ProgressLoading({
@@ -15,15 +16,16 @@ export default function ProgressLoading({
   subtitle = "Mohon tunggu sebentar",
   redirectUrl,
   redirectTime = 3600,
-  spinnerColor = "border-amber-400", 
+  spinnerColor = "border-amber-400",
   progressColor = "bg-amber-400",
-  onLoadingComplete
+  onLoadingComplete,
+  overlay = false,
 }: ProgressLoadingProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setProgress(prevProgress => {
+      setProgress((prevProgress) => {
         const newProgress = prevProgress + 1;
         if (newProgress >= 100) {
           clearInterval(interval);
@@ -49,24 +51,23 @@ export default function ProgressLoading({
   }, [redirectTime, redirectUrl, onLoadingComplete]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white font-sans">
+    <div
+      className={
+        overlay
+          ? "fixed inset-0 z-[1000] flex items-center justify-center bg-white/75"
+          : "flex min-h-screen flex-col items-center justify-center bg-white font-sans"
+      }
+    >
       <div className="text-center">
-        {/* Loading Spinner */}
-        <div 
-          className={`w-24 h-24 border-8 border-gray-100 ${spinnerColor} rounded-full animate-spin mx-auto mb-5`}
-          style={{ borderTopColor: 'currentColor' }}
+        <div
+          className={`mx-auto mb-5 h-24 w-24 animate-spin rounded-full border-8 border-gray-100 ${spinnerColor}`}
+          style={{ borderTopColor: "currentColor" }}
         ></div>
-        
-        {/* Loading Text */}
-        <div className="text-gray-800 text-2xl mb-2 animate-pulse">{title}</div>
-        
-        {/* Loading Subtext */}
-        <div className="text-gray-500 text-base">{subtitle}</div>
-        
-        {/* Progress Bar */}
-        <div className="w-48 h-1 bg-gray-100 rounded mt-5 mb-2 overflow-hidden">
-          <div 
-            className={`h-full ${progressColor} rounded`}
+        <div className="mb-2 animate-pulse text-2xl text-gray-800">{title}</div>
+        <div className="text-base text-gray-600">{subtitle}</div>
+        <div className="mb-2 mt-5 w-80 overflow-hidden rounded bg-gray-100">
+          <div
+            className={`h-2 ${progressColor}`}
             style={{ width: `${progress}%` }}
           ></div>
         </div>

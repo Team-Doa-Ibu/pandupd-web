@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 
 export type ScreeningChatBotProps = {
@@ -17,13 +17,53 @@ export type ScreeningChatBotProps = {
 export function ScreeningChatBot({ vm, hm }: ScreeningChatBotProps) {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Generate initial content based on screening results
+  const generateInitialContent = useCallback(() => {
+    let content = "";
+
+    // Add voice analysis results if available
+    if (vm) {
+      content += `**Analisis Suara**: ${vm.isDetected ? "Terdeteksi gangguan pola suara" : "Pola suara normal"} (Skor: ${vm.confidenceScore?.toFixed(1)}%). `;
+    }
+
+    // Add spiral drawing results if available
+    if (hm) {
+      content += `**Tes Gambar Spiral**: ${hm.isDetected ? "Terdeteksi gangguan motorik halus" : "Motorik halus normal"} (Skor: ${hm.confidenceScore?.toFixed(1)}%). `;
+    }
+
+    // Add overall conclusion
+    const detectedTests = (vm?.isDetected ? 1 : 0) + (hm?.isDetected ? 1 : 0);
+
+    if (detectedTests === 0) {
+      content += `**Kesimpulan**: Hasil skrining normal. Tetap jaga kesehatan dan lakukan pemeriksaan rutin.`;
+    } else if (detectedTests === 1) {
+      content += `**Kesimpulan**: Terdapat indikasi gejala awal. Disarankan konsultasi dengan dokter spesialis saraf.`;
+    } else {
+      content += `**Kesimpulan**: Terdapat indikasi gejala yang perlu perhatian serius. Segera konsultasi dengan dokter spesialis saraf.`;
+    }
+
+    content += ` Ingat, ini skrining awal dan bukan diagnosis definitif. Silakan ajukan pertanyaan tentang hasil skrining atau langkah selanjutnya.`;
+
+    return content;
+  }, [vm, hm]);
+
   const [chatHistory, setChatHistory] = useState([
     {
       type: "system",
-      content:
-        "Hasil skrining Anda siap dibahas. Ingat, ini skrining awal dan bukan diagnosis. Tanyakan apa pun tentang hasil ini atau langkah selanjutnya.",
+      content: generateInitialContent(),
     },
   ] as { type: "system" | "user"; content: string }[]);
+
+  // Update initial content when screening data changes
+  useEffect(() => {
+    setChatHistory([
+      {
+        type: "system",
+        content: generateInitialContent(),
+      },
+    ]);
+  }, [generateInitialContent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +146,9 @@ export function ScreeningChatBot({ vm, hm }: ScreeningChatBotProps) {
                           <div className="mb-1 font-bold">
                             Ringkasan Hasil Skrining
                           </div>
-                          <p>{chat.content}</p>
+                          <div className="prose prose-sm max-w-none">
+                            <ReactMarkdown>{chat.content}</ReactMarkdown>
+                          </div>
                         </div>
                       ) : (
                         <div className="prose prose-sm max-w-none">
