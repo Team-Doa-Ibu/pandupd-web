@@ -48,7 +48,7 @@ export function AdminSidebar({ isOpen = false, onToggle }: AdminSidebarProps) {
     {
       title: "Artikel",
       icon: IconArticle,
-      href: "/admin/articles",
+      href: "/admin/artikel",
       description: "Kelola artikel kesehatan",
     },
     {

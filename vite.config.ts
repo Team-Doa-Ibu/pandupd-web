@@ -41,12 +41,12 @@ export default defineConfig({
     "process.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
       process.env.VITE_SUPABASE_ANON_KEY,
     ),
-    // "process.env.VITE_API_MODEL_URL": JSON.stringify(
-    //   process.env.VITE_API_MODEL_URL,
-    // ),
-    // "process.env.VITE_GEMINI_API_KEY": JSON.stringify(
-    //   process.env.VITE_GEMINI_API_KEY,
-    // ),
+    "process.env.VITE_API_MODEL_URL": JSON.stringify(
+      process.env.VITE_API_MODEL_URL,
+    ),
+    "process.env.VITE_GEMINI_API_KEY": JSON.stringify(
+      process.env.VITE_GEMINI_API_KEY,
+    ),
     // "process.env.SESSION_SECRET": JSON.stringify(process.env.SESSION_SECRET),
   },
 });
