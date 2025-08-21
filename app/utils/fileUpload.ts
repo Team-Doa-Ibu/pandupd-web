@@ -128,3 +128,88 @@ export const deleteFileFromTerapi = async (
     };
   }
 };
+
+// Artikel-specific helpers
+export const uploadImageToArtikel = async (
+  file: File,
+): Promise<UploadResult> => {
+  try {
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/svg+xml",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      return { success: false, error: "Tipe file tidak didukung." };
+    }
+
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return {
+        success: false,
+        error: "Ukuran file terlalu besar. Maksimal 5MB.",
+      };
+    }
+
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const fileExtension = file.name.split(".").pop();
+    const fileName = `artikel-${timestamp}-${randomString}.${fileExtension}`;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("fileName", fileName);
+
+    const response = await fetch("/api/upload-article-image", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return {
+        success: false,
+        error: errorData.error || "Gagal mengupload gambar",
+      };
+    }
+
+    const result = await response.json();
+    return { success: true, url: result.url };
+  } catch (error) {
+    console.error("Upload artikel error:", error);
+    return {
+      success: false,
+      error: "Terjadi kesalahan saat mengupload gambar",
+    };
+  }
+};
+
+export const deleteFileFromArtikel = async (
+  fileName: string,
+): Promise<DeleteResult> => {
+  try {
+    const formData = new FormData();
+    formData.append("fileName", fileName);
+
+    const response = await fetch("/api/delete-article-file", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return {
+        success: false,
+        error: errorData.error || "Gagal menghapus file",
+      };
+    }
+
+    await response.json();
+    return { success: true };
+  } catch (error) {
+    console.error("Delete artikel error:", error);
+    return { success: false, error: "Terjadi kesalahan saat menghapus file" };
+  }
+};
