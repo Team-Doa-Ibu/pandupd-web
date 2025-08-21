@@ -69,13 +69,13 @@ export function Navbar() {
       )}
       <nav className="fixed left-1/2 top-6 z-50 box-border flex w-[95%] max-w-screen-xl -translate-x-1/2 items-center justify-between rounded-full border border-neutral-300 bg-white px-3 py-2 shadow-md sm:max-w-6xl sm:p-2">
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <a href="/" className="flex items-center gap-2">
           <img
             src="/Logo.svg"
             alt="Logo"
             className="ml-2 h-9 rounded-full"
           />
-        </div>
+        </a>
 
         {/* Desktop Menu */}
         <div className="hidden flex-1 justify-center md:flex">

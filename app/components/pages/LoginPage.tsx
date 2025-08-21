@@ -88,7 +88,7 @@ export default function LoginPage() {
       <div className="z-10 w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
         <div className="mb-6 flex justify-center">
           <div className="flex items-center">
-            <img src="logo.png" alt="" className="h-8" />
+            <img src="Logo.svg" alt="" className="h-8" />
           </div>
         </div>
         <h2 className="mb-1 text-center text-2xl font-semibold text-gray-800">

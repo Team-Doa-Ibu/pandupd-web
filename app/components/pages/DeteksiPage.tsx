@@ -280,7 +280,10 @@ const DeteksiPage = () => {
       {/*Detection Section*/}
       <section className="mx-auto w-full p-4">
         {/* Gambar Spiral */}
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-center py-8">
+        <section
+          id="analisis-gambar"
+          className="mx-auto flex max-w-6xl flex-col items-center justify-center py-8"
+        >
           {/* label */}
           <div className="w-fit rounded-t-2xl border-x border-t border-neutral-300 bg-white p-2">
             <div className="flex items-center justify-center gap-2 rounded-full bg-blue-50 px-4 py-2 shadow-inner">
@@ -323,10 +326,13 @@ const DeteksiPage = () => {
               <Spiral onConfirm={handleSpiralConfirm} />
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Analisis Suara */}
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-center py-8">
+        <section
+          id="analisis-suara"
+          className="mx-auto flex max-w-6xl flex-col items-center justify-center py-8"
+        >
           {/* label */}
           <div className="w-fit rounded-t-2xl border-x border-t border-neutral-300 bg-white p-2">
             <div className="flex items-center justify-center gap-2 rounded-full bg-blue-50 px-4 py-2 shadow-inner">
@@ -430,7 +436,7 @@ const DeteksiPage = () => {
               <Audio onConfirm={handleAudioConfirm} />
             </div>
           </div>
-        </div>
+        </section>
       </section>
 
       {/* Submit Section */}

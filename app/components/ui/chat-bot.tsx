@@ -138,7 +138,7 @@ export function ChatBot() {
           {/* Header */}
           <div className="flex items-center justify-between border-b bg-white p-4">
             <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="Logo" className="h-8 w-8" />
+              <img src="/LogoAsset.svg" alt="Logo" className="h-8 w-8" />
               <span className="font-bold text-gray-800">Pandu-PD AI</span>
             </div>
             <div className="flex items-center gap-2">

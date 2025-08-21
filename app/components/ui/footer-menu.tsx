@@ -2,6 +2,7 @@ import React from "react";
 
 type NavMenuProps = {
   text: string;
+  href?: string;
   type?: "footer" | "default";
   className?: string;
   stateProp?: string;
@@ -9,9 +10,10 @@ type NavMenuProps = {
 
 export const NavMenu: React.FC<NavMenuProps> = ({
   text,
+  href = "/",
   type = "default",
   className = "",
-  stateProp, // ambil tapi jangan diteruskan ke <a>
+  stateProp,
   ...props
 }) => {
   const base = "py-1 rounded-full font-medium transition cursor-pointer";
@@ -19,11 +21,11 @@ export const NavMenu: React.FC<NavMenuProps> = ({
     type === "footer"
       ? "bg-transparent text-white/50 hover:text-yellow-400"
       : "bg-blue-500 text-white hover:bg-blue-600";
+
   return (
     <a
-      href="/"
+      href={href}
       className={`${base} ${styles} ${className}`}
-      // ...props tanpa stateProp
       {...props}
     >
       {text}

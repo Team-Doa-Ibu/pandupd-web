@@ -1,3 +1,4 @@
+// footer.tsx
 import PropTypes from "prop-types";
 import { NavMenu } from "./footer-menu";
 
@@ -19,10 +20,10 @@ export const Footer = ({ text = "PANDU‑PD" }) => {
             <div className="flex min-w-[150px] flex-col gap-4">
               <div className="text-base font-bold text-white">Tautan Cepat</div>
               <div className="flex flex-col gap-2">
-                <NavMenu text="Cek Sekarang" type="footer" />
-                <NavMenu text="Terapi" type="footer" />
-                <NavMenu text="Artikel" type="footer" />
-                <NavMenu text="Riwayat" type="footer" />
+                <NavMenu text="Cek Sekarang" type="footer" href="/deteksi" />
+                <NavMenu text="Terapi" type="footer" href="/terapi" />
+                <NavMenu text="Artikel" type="footer" href="/artikel" />
+                <NavMenu text="Riwayat" type="footer" href="/history" />
               </div>
             </div>
             <div className="flex min-w-[150px] flex-col gap-4">
@@ -30,15 +31,12 @@ export const Footer = ({ text = "PANDU‑PD" }) => {
                 Alat Diagnosis
               </div>
               <div className="flex flex-col gap-2">
-                <NavMenu text="Gambar Spiral" type="footer" />
-                <NavMenu text="Analisis Pola Suara" type="footer" />
-              </div>
-            </div>
-            <div className="flex min-w-[150px] flex-col gap-4">
-              <div className="text-base font-bold text-white">Informasi</div>
-              <div className="flex flex-col gap-2">
-                <NavMenu text="Tentang Kami" type="footer" />
-                <NavMenu text="Hubungi Kami" type="footer" />
+                <NavMenu text="Gambar Spiral" type="footer" href="/deteksi" />
+                <NavMenu
+                  text="Analisis Pola Suara"
+                  type="footer"
+                  href="/deteksi"
+                />
               </div>
             </div>
           </div>
@@ -46,15 +44,10 @@ export const Footer = ({ text = "PANDU‑PD" }) => {
 
         <hr className="my-6 w-full border-t border-neutral-600" />
 
-        <div className="flex w-full flex-col items-center justify-between gap-4 md:flex-row">
-          <p className="text-center text-base font-medium text-white md:text-left">
+        <div className="flex w-full flex-col items-center justify-center gap-4">
+          <p className="text-center text-base font-medium text-white">
             © 2025 PANDU‑PD. Hak Cipta Dilindungi.
           </p>
-          <div className="flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end">
-            <NavMenu text="Kebijakan Privasi" type="footer" />
-            <NavMenu text="Ketentuan Layanan" type="footer" />
-            <NavMenu text="Kebijakan Cookie" type="footer" />
-          </div>
         </div>
       </div>
     </div>

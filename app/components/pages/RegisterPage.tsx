@@ -119,7 +119,7 @@ export default function RegisterPage() {
         )}
         <div className="mb-6 flex justify-center">
           <div className="flex items-center">
-            <img src="logo.png" alt="Logo" className="h-8" />
+            <img src="Logo.svg" alt="Logo" className="h-8" />
           </div>
         </div>
         <h2 className="mb-1 text-center text-2xl font-semibold text-gray-800">
