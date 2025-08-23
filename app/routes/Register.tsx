@@ -31,7 +31,7 @@ export const action = async ({ request }: { request: Request }) => {
     password,
     options: {
       data: { name: fullname },
-      emailRedirectTo: `${process.env.ORIGIN || "http://localhost:3000"}/login`,
+      emailRedirectTo: `${process.env.ORIGIN || "https://pandu-pd.vercel.app"}/login`,
     },
   });
 

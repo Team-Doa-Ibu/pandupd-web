@@ -515,19 +515,78 @@ export default function AdminEditCourse() {
   };
 
   const handleAddVideo = async (videoData: any) => {
+    if (!courseId) return;
     try {
-      const newVideo = {
-        course_id: parseInt(courseId!),
-        judul: videoData.title || videoData.judul || "",
+      // Validate slug uniqueness within this course
+      const videoSlug =
+        videoData.slug ||
+        generateVideoSlug(videoData.title || videoData.judul || "");
+      const slugExists = await checkVideoSlugExistsInCourse(
+        videoSlug,
+        parseInt(courseId!),
+      );
+      if (slugExists.error) {
+        setAlertConfig({
+          type: "error",
+          title: "Error",
+          message: "Gagal memvalidasi slug video. Silakan coba lagi.",
+          onConfirm: () => setShowAlert(false),
+        });
+        setShowAlert(true);
+        return;
+      }
+      if (slugExists.exists) {
+        setAlertConfig({
+          type: "warning",
+          title: "Slug Video Sudah Ada",
+          message: `Slug "${videoSlug}" sudah digunakan oleh video lain dalam course ini. Silakan gunakan slug yang berbeda.`,
+          onConfirm: () => setShowAlert(false),
+        });
+        setShowAlert(true);
+        return;
+      }
+
+      // Validate title uniqueness within this course
+      const videoTitle = videoData.title || videoData.judul || "";
+      const titleExists = await checkVideoTitleExistsInCourse(
+        videoTitle,
+        parseInt(courseId!),
+      );
+      if (titleExists.error) {
+        setAlertConfig({
+          type: "error",
+          title: "Error",
+          message: "Gagal memvalidasi judul video. Silakan coba lagi.",
+          onConfirm: () => setShowAlert(false),
+        });
+        setShowAlert(true);
+        return;
+      }
+      if (titleExists.exists) {
+        setAlertConfig({
+          type: "warning",
+          title: "Judul Video Sudah Ada",
+          message: `Judul "${videoTitle}" sudah digunakan oleh video lain dalam course ini. Silakan gunakan judul yang berbeda.`,
+          onConfirm: () => setShowAlert(false),
+        });
+        setShowAlert(true);
+        return;
+      }
+
+      // Map to database fields
+      const videoDataForDB = {
+        courses_id: parseInt(courseId!),
+        judul: videoTitle,
+        slug: videoSlug,
         durasi: videoData.duration || videoData.durasi || "",
-        order_index: videos.length + 1,
-        deskripsi: videoData.description || videoData.deskripsi || "",
-        youtube_url: videoData.youtube_url || "",
+        no_urut: (videos.length || 0) + 1,
+        konten: videoData.description || videoData.deskripsi || "",
+        link: videoData.youtube_url || "",
       };
 
       const { data, error } = await supabase
         .from("sub_pembelajaran")
-        .insert([newVideo])
+        .insert([videoDataForDB])
         .select()
         .single();
 
@@ -536,14 +595,14 @@ export default function AdminEditCourse() {
         setAlertConfig({
           type: "error",
           title: "Error",
-          message: "Gagal menambahkan video",
+          message: `Gagal menambahkan video: ${error.message}`,
           onConfirm: () => setShowAlert(false),
         });
         setShowAlert(true);
         return;
       }
 
-      setVideos([...videos, data]);
+      setVideos([...videos, { ...videoData, id: data.id }]);
       setSelectedVideo(null);
 
       setAlertConfig({
@@ -568,12 +627,15 @@ export default function AdminEditCourse() {
   const handleAddMultipleVideos = async (videoDataArray: any[]) => {
     try {
       const newVideos = videoDataArray.map((videoData, index) => ({
-        course_id: parseInt(courseId!),
+        courses_id: parseInt(courseId!),
         judul: videoData.title || videoData.judul || "",
+        slug:
+          videoData.slug ||
+          generateVideoSlug(videoData.title || videoData.judul || ""),
         durasi: videoData.duration || videoData.durasi || "",
-        order_index: videos.length + index + 1,
-        deskripsi: videoData.description || videoData.deskripsi || "",
-        youtube_url: videoData.youtube_url || "",
+        no_urut: videos.length + index + 1,
+        konten: videoData.description || videoData.deskripsi || "",
+        link: videoData.youtube_url || "",
       }));
 
       const { data, error } = await supabase
@@ -593,13 +655,16 @@ export default function AdminEditCourse() {
         return;
       }
 
-      setVideos([...videos, ...data]);
+      setVideos([
+        ...videos,
+        ...videoDataArray.map((v, i) => ({ ...v, id: data?.[i]?.id })),
+      ]);
       setSelectedVideo(null);
 
       setAlertConfig({
         type: "success",
         title: "Berhasil!",
-        message: `${data.length} video berhasil ditambahkan!`,
+        message: `${data?.length || newVideos.length} video berhasil ditambahkan!`,
         onConfirm: () => setShowAlert(false),
       });
       setShowAlert(true);
@@ -620,11 +685,39 @@ export default function AdminEditCourse() {
 
     try {
       const videoToUpdate = videos[editingVideoIndex];
+      const computedSlug =
+        videoData.slug ||
+        videoToUpdate.slug ||
+        generateVideoSlug(
+          videoData.title ||
+            videoData.judul ||
+            videoToUpdate.title ||
+            videoToUpdate.judul ||
+            "",
+        );
+
       const updatedVideo = {
-        judul: videoData.title || videoData.judul || "",
-        durasi: videoData.duration || videoData.durasi || "",
-        deskripsi: videoData.description || videoData.deskripsi || "",
-        youtube_url: videoData.youtube_url || "",
+        judul:
+          videoData.title ||
+          videoData.judul ||
+          videoToUpdate.title ||
+          videoToUpdate.judul ||
+          "",
+        slug: computedSlug,
+        durasi:
+          videoData.duration ||
+          videoData.durasi ||
+          videoToUpdate.duration ||
+          videoToUpdate.durasi ||
+          "",
+        no_urut: videoData.order_index || videoToUpdate.order_index,
+        konten:
+          videoData.description ||
+          videoData.deskripsi ||
+          videoToUpdate.description ||
+          videoToUpdate.deskripsi ||
+          "",
+        link: videoData.youtube_url || videoToUpdate.youtube_url || "",
       };
 
       const { error } = await supabase
@@ -648,7 +741,7 @@ export default function AdminEditCourse() {
       updatedVideos[editingVideoIndex] = {
         ...videoToUpdate,
         ...updatedVideo,
-      };
+      } as any;
       setVideos(updatedVideos);
       setEditingVideoIndex(null);
       setSelectedVideo(null);
@@ -2245,3 +2338,73 @@ export default function AdminEditCourse() {
     </ProtectedRoute>
   );
 }
+
+// Function to check if video slug already exists in the same course
+const checkVideoSlugExistsInCourse = async (
+  slug: string,
+  courseId: number,
+  excludeId?: number,
+) => {
+  try {
+    let query = supabase
+      .from("sub_pembelajaran")
+      .select("id, judul")
+      .eq("courses_id", courseId)
+      .eq("slug", slug);
+
+    if (excludeId) {
+      query = query.neq("id", excludeId);
+    }
+
+    const { data: existingVideos, error } = await query;
+
+    if (error) {
+      console.error("❌ Error checking video slug in course:", error);
+      return { exists: false, error: true };
+    }
+
+    return {
+      exists: existingVideos && existingVideos.length > 0,
+      videos: existingVideos || [],
+      error: false,
+    };
+  } catch (error) {
+    console.error("❌ Error checking video slug in course:", error);
+    return { exists: false, error: true };
+  }
+};
+
+// Function to check if video title already exists in the same course
+const checkVideoTitleExistsInCourse = async (
+  title: string,
+  courseId: number,
+  excludeId?: number,
+) => {
+  try {
+    let query = supabase
+      .from("sub_pembelajaran")
+      .select("id, slug")
+      .eq("courses_id", courseId)
+      .eq("judul", title);
+
+    if (excludeId) {
+      query = query.neq("id", excludeId);
+    }
+
+    const { data: existingVideos, error } = await query;
+
+    if (error) {
+      console.error("❌ Error checking video title in course:", error);
+      return { exists: false, error: true };
+    }
+
+    return {
+      exists: existingVideos && existingVideos.length > 0,
+      videos: existingVideos || [],
+      error: false,
+    };
+  } catch (error) {
+    console.error("❌ Error checking video title in course:", error);
+    return { exists: false, error: true };
+  }
+};
