@@ -14,6 +14,7 @@ import { supabase } from "~/data/supabaseClient";
 const DeteksiPage = () => {
   const [spiralSvg, setSpiralSvg] = useState<string | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [symptoms, setSymptoms] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
 
@@ -23,6 +24,10 @@ const DeteksiPage = () => {
 
   const handleAudioConfirm = (file: File) => {
     setAudioFile(file);
+  };
+
+  const handleSymptomsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setSymptoms(e.target.value);
   };
 
   const triggerDownload = (url: string) => {
@@ -60,6 +65,7 @@ const DeteksiPage = () => {
       const form = new FormData();
       if (spiralSvg) form.append("spiralSvg", spiralSvg);
       if (audioFile) form.append("audio", audioFile);
+      form.append("symptoms", symptoms);
       const res = await fetch("/api/deteksi-submit", {
         method: "POST",
         headers: {
@@ -132,7 +138,7 @@ const DeteksiPage = () => {
   };
 
   const isSubmitEnabled = spiralSvg !== null || audioFile !== null;
-  const completedTests = [spiralSvg !== null, audioFile !== null].filter(
+  const completedTests = [symptoms !== '', spiralSvg !== null, audioFile !== null].filter(
     Boolean,
   ).length;
 
@@ -160,11 +166,38 @@ const DeteksiPage = () => {
                     Status Deteksi
                   </h3>
                   <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
-                    {completedTests}/2 Selesai
+                    {completedTests}/3 Selesai
                   </span>
                 </div>
 
                 <div className="mb-4 space-y-3">
+                  {/* Symptoms Status */}
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`rounded-full p-2 ${symptoms ? "bg-green-100" : "bg-neutral-100"}`}
+                    >
+                      {symptoms ? (
+                        <IconCheck size={20} className="text-green-600" />
+                      ) : (
+                        <IconInfoCircle size={20} className="text-neutral-400" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p
+                        className={`font-medium ${symptoms ? "text-green-700" : "text-neutral-500"}`}
+                      >
+                        Gejala
+                      </p>
+                      <p
+                        className={`text-sm ${symptoms ? "text-green-600" : "text-neutral-400"}`}
+                      >
+                        {symptoms
+                          ? "Gejala telah diisi"
+                          : "Belum mengisi gejala"}
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Spiral Status */}
                   <div className="flex items-center gap-3">
                     <div
@@ -233,7 +266,7 @@ const DeteksiPage = () => {
                   <div className="h-3 w-full overflow-hidden rounded-full bg-neutral-200">
                     <div
                       className="h-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500 ease-out"
-                      style={{ width: `${(completedTests / 2) * 100}%` }}
+                      style={{ width: `${(completedTests / 3) * 100}%` }}
                     ></div>
                   </div>
                 </div>
@@ -277,6 +310,53 @@ const DeteksiPage = () => {
         </div>
       </section>
 
+      {/* Deskripsi Gejala Section */}
+      <section className="mx-auto w-full p-4">
+      <section className="mx-auto flex max-w-6xl flex-col items-center justify-center py-8">
+        {/* label */}
+        <div className="w-fit rounded-t-2xl border-x border-t border-neutral-300 bg-white p-2">
+          <div className="flex items-center justify-center gap-2 rounded-full bg-blue-50 px-4 py-2 shadow-inner">
+            <IconInfoCircle size={20} className="text-blue-500" />
+            <p className="font-bold text-blue-500">Deskripsi Gejala</p>
+          </div>
+        </div>
+        {/* content */}
+        <div className="w-full space-y-4 rounded-[32px] border border-neutral-300 bg-white p-4">
+          {/* info */}
+          <div className="flex flex-col gap-4 rounded-2xl border border-amber-300 bg-amber-50 p-4">
+            {/* icon */}
+            <div className="flex items-center gap-2">
+              <div className="rounded-full bg-amber-500 p-2">
+                <IconInfoCircle size={24} className="text-white" />
+              </div>
+              <p className="font-bold text-neutral-700">
+                Deskripsi Gejala Anda
+              </p>
+            </div>
+            <p className="text-neutral-700">
+              Berikan deskripsi gejala yang Anda alami untuk membantu analisis yang lebih akurat. Ini opsional tetapi sangat membantu.
+            </p>
+          </div>
+
+          {/* symptoms input */}
+          <div className="w-full rounded-2xl border border-dashed border-neutral-300 p-4">
+            <textarea
+              value={symptoms}
+              onChange={handleSymptomsChange}
+              placeholder="Jelaskan gejala yang Anda alami, misalnya: kesulitan berjalan, tremor, perubahan suara, dll."
+              className="w-full min-h-[120px] p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              maxLength={500}
+            />
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm text-neutral-500">Deskripsi gejala (opsional)</span>
+              <span className="text-sm text-neutral-500">
+                {symptoms.length}/500 karakter
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+</section>
       {/*Detection Section*/}
       <section className="mx-auto w-full p-4">
         {/* Gambar Spiral */}
@@ -462,11 +542,38 @@ const DeteksiPage = () => {
                   Status Deteksi
                 </h3>
                 <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
-                  {completedTests}/2 Selesai
+                  {completedTests}/3 Selesai
                 </span>
               </div>
 
               <div className="space-y-3">
+                {/* Symptoms Status */}
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`rounded-full p-2 ${symptoms ? "bg-green-100" : "bg-neutral-100"}`}
+                  >
+                    {symptoms ? (
+                      <IconCheck size={20} className="text-green-600" />
+                    ) : (
+                      <IconInfoCircle size={20} className="text-neutral-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p
+                      className={`font-medium ${symptoms ? "text-green-700" : "text-neutral-500"}`}
+                    >
+                      Deskripsi Gejala
+                    </p>
+                    <p
+                      className={`text-sm ${symptoms ? "text-green-600" : "text-neutral-400"}`}
+                    >
+                      {symptoms
+                        ? "Gejala telah diisi"
+                        : "Belum mengisi gejala"}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Spiral Status */}
                 <div className="flex items-center gap-3">
                   <div
@@ -535,7 +642,7 @@ const DeteksiPage = () => {
                 <div className="h-2 w-full rounded-full bg-neutral-200">
                   <div
                     className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500 ease-out"
-                    style={{ width: `${(completedTests / 2) * 100}%` }}
+                    style={{ width: `${(completedTests / 3) * 100}%` }}
                   ></div>
                 </div>
               </div>
