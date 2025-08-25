@@ -7,16 +7,14 @@ import ffmpeg from "fluent-ffmpeg";
 
 function sanitizeSpiralSvg(svg: string): string {
   let out = svg;
+  // Remove image elements (dots) but keep background rect
   out = out.replace(/<image\b[^>]*\/>/gi, "");
   out = out.replace(/<image\b[^>]*>[\s\S]*?<\/image>/gi, "");
-  out = out.replace(
-    /<rect\b[^>]*?fill\s*=\s*"(?:#fff(?:fff)?|white|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))"[^>]*\/>/gi,
-    "",
-  );
-  out = out.replace(
-    /<rect\b[^>]*?fill\s*=\s*"(?:#fff(?:fff)?|white|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))"[^>]*>[\s\S]*?<\/rect>/gi,
-    "",
-  );
+
+  // Keep the white background rect - don't remove it
+  // out = out.replace(/<rect\b[^>]*?fill\s*=\s*"(?:#fff(?:fff)?|white|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))"[^>]*\/>/gi, "");
+  // out = out.replace(/<rect\b[^>]*?fill\s*=\s*"(?:#fff(?:fff)?|white|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))"[^>]*>[\s\S]*?<\/rect>/gi, "");
+
   return out;
 }
 
@@ -27,7 +25,12 @@ async function ensureDir(dir: string) {
 async function saveSvgAsPng(svgString: string, outPath: string) {
   const cleaned = sanitizeSpiralSvg(svgString);
   const svgBuffer = Buffer.from(cleaned, "utf8");
-  await sharp(svgBuffer).png().toFile(outPath);
+
+  // Create PNG with white background
+  await sharp(svgBuffer)
+    .png()
+    .flatten({ background: "#ffffff" }) // Ensure white background
+    .toFile(outPath);
 }
 
 async function convertToWavPcm16k441(
@@ -63,7 +66,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const timestamp = Date.now();
     const saved: { spiralPath?: string; audioPath?: string } = {};
 
-    // Save SVG -> PNG (transparent)
+    // Save SVG -> PNG (with white background)
     if (typeof spiralSvg === "string" && spiralSvg.trim().length > 0) {
       const pngName = `spiral_${timestamp}.png`;
       const pngPath = path.join(spiralDir, pngName);
@@ -335,29 +338,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       inserted.id,
     );
 
-    // Only cleanup files if we have valid predictions
-    const hasValidResponse =
-      out.success &&
-      ((out.hw_prediction !== null && out.hw_prediction !== undefined) ||
-        (out.vm_prediction !== null && out.vm_prediction !== undefined));
-
-    if (hasValidResponse) {
-      console.log("[deteksi-submit] response valid, cleaning up files");
-      // Cleanup uploaded files
-      await Promise.all([
-        saved.spiralPath
-          ? fsp.unlink(saved.spiralPath).catch(() => undefined)
-          : Promise.resolve(),
-        saved.audioPath
-          ? fsp.unlink(saved.audioPath).catch(() => undefined)
-          : Promise.resolve(),
-      ]);
-    } else {
-      console.log(
-        "[deteksi-submit] response invalid, keeping files for debugging",
-      );
-      console.log("[deteksi-submit] raw model response:", modelJson);
-    }
+    // Cleanup uploaded files after successful processing
+    console.log("[deteksi-submit] cleaning up uploaded files");
+    await Promise.all([
+      saved.spiralPath
+        ? fsp.unlink(saved.spiralPath).catch(() => undefined)
+        : Promise.resolve(),
+      saved.audioPath
+        ? fsp.unlink(saved.audioPath).catch(() => undefined)
+        : Promise.resolve(),
+    ]);
+    console.log("[deteksi-submit] files cleaned up successfully");
 
     console.log("[deteksi-submit] sending response to client");
 

@@ -4,6 +4,7 @@ import { SpiralScreeningCard } from "../ui/SpiralScreeningCard";
 import { VoiceAnalysisCard } from "../ui/VoiceAnalysisCard";
 import { ScreeningChatBot } from "../ui/ScreeningChatBot";
 import { supabase } from "~/data/supabaseClient";
+import { Link } from "@remix-run/react";
 
 interface ResultData {
   isDetected?: boolean;
@@ -163,8 +164,11 @@ export default function ScreeningResultPage({
           </div>
         )}
 
-        <div className="mt-10 flex justify-center gap-4">
-          <button className="flex items-center gap-2 rounded-full border border-gray-300 px-6 py-3 hover:bg-gray-50">
+        <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
+          <Link
+            to="/deteksi"
+            className="flex items-center gap-2 rounded-full border border-gray-300 px-6 py-3 transition-colors duration-150 hover:bg-gray-50"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -179,9 +183,12 @@ export default function ScreeningResultPage({
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
             Ulangi Skrining
-          </button>
+          </Link>
 
-          <button className="flex items-center gap-2 rounded-full bg-blue-500 px-6 py-3 text-white hover:bg-blue-600">
+          <Link
+            to="/terapi"
+            className="flex items-center gap-2 rounded-full bg-blue-500 px-6 py-3 text-white transition-colors duration-150 hover:bg-blue-600"
+          >
             Lakukan Terapi
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -196,7 +203,7 @@ export default function ScreeningResultPage({
             >
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
-          </button>
+          </Link>
         </div>
 
         <div className="mx-auto mt-10 flex max-w-4xl gap-3 rounded-xl border border-yellow-100 bg-yellow-50 p-4">
