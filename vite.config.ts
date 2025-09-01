@@ -22,7 +22,7 @@ export default defineConfig({
       routes(defineRoutes) {
         return flatRoutes("routes", defineRoutes, {
           ignoredRouteFiles: ["**/.*"], // Ignore dot files (like .DS_Store)
-          //appDir: 'app',
+          //appDir: 'app',ll
           //routeDir: 'routes',
           //basePath: '/',
           //paramPrefixChar: '$',
