@@ -57,6 +57,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const form = await request.formData();
     const spiralSvg = form.get("spiralSvg");
     const audioFile = form.get("audio");
+    const symptoms = form.get("symptoms");
 
     const publicDir = path.join(process.cwd(), "public");
     const spiralDir = path.join(publicDir, "file_spiral");
@@ -70,11 +71,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (typeof spiralSvg === "string" && spiralSvg.trim().length > 0) {
       const pngName = `spiral_${timestamp}.png`;
       const pngPath = path.join(spiralDir, pngName);
-      console.log("[deteksi-submit] saving spiral to:", pngPath);
       await saveSvgAsPng(spiralSvg, pngPath);
       saved.spiralPath = pngPath;
-    } else {
-      console.log("[deteksi-submit] spiralSvg not provided");
     }
 
     // Save/convert audio -> WAV 44.1kHz 16-bit
@@ -85,7 +83,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const outputName = `audio_${timestamp}.wav`;
       const outputPath = path.join(audioDir, outputName);
       await fsp.writeFile(inputTmp, Buffer.from(arrayBuffer));
-      console.log("[deteksi-submit] converting audio to wav:", outputPath);
       try {
         await convertToWavPcm16k441(inputTmp, outputPath);
         saved.audioPath = outputPath;
@@ -100,14 +97,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       } finally {
         fsp.unlink(inputTmp).catch(() => undefined);
       }
-    } else {
-      console.log("[deteksi-submit] audio not provided");
     }
 
     // Forward to external API (multipart/form-data)
     // const apiUrl = "https://jay-fit-safely.ngrok-free.app/api/diagnosis";
     const apiUrl = process.env.VITE_API_MODEL_URL || "";
-    console.log("[deteksi-submit] apiUrl:", apiUrl);
     if (!apiUrl) {
       console.error("[deteksi-submit] API_MODEL_URL not configured");
       await Promise.all([
@@ -129,50 +123,55 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
     const fdata = new FormData();
+    // Build an explicit summary of what will be sent
+    const outgoingSummary: {
+      apiUrl: string;
+      symptoms?: string;
+      files: {
+        hw_file?: { filename: string; bytes: number; type: string };
+        vm_file?: { filename: string; bytes: number; type: string };
+      };
+    } = { apiUrl, files: {} };
+
+    if (symptoms) {
+      outgoingSummary.symptoms = symptoms as string;
+      fdata.append("symptoms", symptoms as string);
+    }
+
     if (saved.spiralPath) {
       const pngBuf = await fsp.readFile(saved.spiralPath);
-      console.log(
-        "[deteksi-submit] adding hw_file:",
-        saved.spiralPath,
-        "bytes:",
-        pngBuf.length,
-      );
+      const spiralFilename = path.basename(saved.spiralPath);
       fdata.append(
         "hw_file",
         new Blob([pngBuf], { type: "image/png" }),
-        path.basename(saved.spiralPath),
+        spiralFilename,
       );
+      outgoingSummary.files.hw_file = {
+        filename: spiralFilename,
+        bytes: pngBuf.length,
+        type: "image/png",
+      };
     }
     if (saved.audioPath) {
       const wavBuf = await fsp.readFile(saved.audioPath);
-      console.log(
-        "[deteksi-submit] adding vm_file:",
-        saved.audioPath,
-        "bytes:",
-        wavBuf.length,
-      );
+      const audioFilename = path.basename(saved.audioPath);
       fdata.append(
         "vm_file",
         new Blob([wavBuf], { type: "audio/wav" }),
-        path.basename(saved.audioPath),
+        audioFilename,
       );
+      outgoingSummary.files.vm_file = {
+        filename: audioFilename,
+        bytes: wavBuf.length,
+        type: "audio/wav",
+      };
     }
 
-    // Log FormData contents
-    console.log("[deteksi-submit] FormData entries:");
-    for (const [key, value] of fdata.entries()) {
-      console.log(
-        `  ${key}:`,
-        typeof value,
-        value instanceof Blob
-          ? `Blob(${value.size} bytes, ${value.type})`
-          : value,
-      );
-    }
+    // New: clear, structured summary of the outgoing payload
+    console.log("[deteksi-submit] Outgoing payload summary:", outgoingSummary);
 
     let modelJson: any = null;
     try {
-      console.log("[deteksi-submit] forwarding to:", apiUrl);
       const resp = await fetch(apiUrl, {
         method: "POST",
         headers: { "ngrok-skip-browser-warning": "true" },
@@ -252,19 +251,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     // Validate response data before cleanup
     // Direct database insert from raw API response
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabaseUrl = process.env.VITE_SUPABASE_URL as string;
-    const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY as string;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const { supabase } = await import("~/data/supabaseClient");
 
     // Get user ID from request headers (sent by client)
     const userId = request.headers.get("x-user-id");
-
-    console.log("[deteksi-submit] user auth check:", {
-      userId: userId,
-      hasUserId: !!userId,
-      requestHeaders: Object.fromEntries(request.headers.entries()),
-    });
 
     if (!userId) {
       console.error("[deteksi-submit] No user ID provided in headers");
@@ -285,19 +275,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       Score_Diagnosa_vm: modelJson?.vm_confidence ?? null,
       Hasil_Diagnosa_hm: modelJson?.hw_prediction ?? null,
       Score_Diagnosa_hm: modelJson?.hw_confidence ?? null,
+      symptoms: modelJson?.message ?? null,
     };
-
-    console.log("[deteksi-submit] inserting to database:", insertData);
-    console.log("[deteksi-submit] user ID being used:", userId);
-    console.log("[deteksi-submit] insert data details:", {
-      user_id: insertData.user_id,
-      user_id_type: typeof insertData.user_id,
-      user_id_length: insertData.user_id?.length,
-      Hasil_Diagnosa_vm: insertData.Hasil_Diagnosa_vm,
-      Score_Diagnosa_vm: insertData.Score_Diagnosa_vm,
-      Hasil_Diagnosa_hm: insertData.Hasil_Diagnosa_hm,
-      Score_Diagnosa_hm: insertData.Score_Diagnosa_hm,
-    });
 
     // Insert to database
     const { data: inserted, error: dbErr } = await supabase
@@ -319,8 +298,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       );
     }
 
-    console.log("[deteksi-submit] successfully inserted with ID:", inserted.id);
-
     // Return success response with inserted ID
     const out = {
       success: true,
@@ -333,13 +310,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     };
 
     console.log("[deteksi-submit] raw API response:", modelJson);
-    console.log(
-      "[deteksi-submit] database insert completed with ID:",
-      inserted.id,
-    );
 
     // Cleanup uploaded files after successful processing
-    console.log("[deteksi-submit] cleaning up uploaded files");
     await Promise.all([
       saved.spiralPath
         ? fsp.unlink(saved.spiralPath).catch(() => undefined)
@@ -348,9 +320,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         ? fsp.unlink(saved.audioPath).catch(() => undefined)
         : Promise.resolve(),
     ]);
-    console.log("[deteksi-submit] files cleaned up successfully");
-
-    console.log("[deteksi-submit] sending response to client");
 
     return json(out);
   } catch (error) {

@@ -15,10 +15,22 @@ import { supabase } from "~/data/supabaseClient";
 const DeteksiPage = () => {
   const [spiralSvg, setSpiralSvg] = useState<string | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [selectedSymptoms, setSelectedSymptoms] = useState<{id: string, text: string, customText: string, selected: boolean}[]>([
-    {id: 'motorik', text: 'Gejala motorik seperti tremor, gemetar, dll', customText: '', selected: false},
-    {id: 'bicara', text: 'Gejala gangguan bicara seperti kesusahan artikulasi, bicara lambat, serak, dll', customText: '', selected: false},
-    {id: 'lainnya', text: 'Gejala lainnya', customText: '', selected: false}
+  const [selectedSymptoms, setSelectedSymptoms] = useState<
+    { id: string; text: string; customText: string; selected: boolean }[]
+  >([
+    {
+      id: "motorik",
+      text: "Gejala motorik seperti tremor, gemetar, dll",
+      customText: "",
+      selected: false,
+    },
+    {
+      id: "bicara",
+      text: "Gejala gangguan bicara seperti kesusahan artikulasi, bicara lambat, serak, dll",
+      customText: "",
+      selected: false,
+    },
+    { id: "lainnya", text: "Gejala lainnya", customText: "", selected: false },
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
@@ -32,25 +44,22 @@ const DeteksiPage = () => {
   };
 
   const handleSymptomToggle = (id: string) => {
-    setSelectedSymptoms(prev =>
-      prev.map(symptom =>
+    setSelectedSymptoms((prev) =>
+      prev.map((symptom) =>
         symptom.id === id
-          ? {...symptom, selected: !symptom.selected}
-          : symptom
-      )
+          ? { ...symptom, selected: !symptom.selected }
+          : symptom,
+      ),
     );
   };
 
   const handleCustomTextChange = (id: string, text: string) => {
-    setSelectedSymptoms(prev =>
-      prev.map(symptom =>
-        symptom.id === id
-          ? {...symptom, customText: text}
-          : symptom
-      )
+    setSelectedSymptoms((prev) =>
+      prev.map((symptom) =>
+        symptom.id === id ? { ...symptom, customText: text } : symptom,
+      ),
     );
   };
-
 
   const postToSession = async (id: number, type?: string) => {
     const form = new FormData();
@@ -78,10 +87,38 @@ const DeteksiPage = () => {
       const form = new FormData();
       if (spiralSvg) form.append("spiralSvg", spiralSvg);
       if (audioFile) form.append("audio", audioFile);
-      const combinedSymptoms = selectedSymptoms
-        .map(symptom => symptom.customText || symptom.text)
-        .filter(Boolean)
-        .join('. ');
+
+      // Build symptoms string based on selection status
+      const symptomsParts: string[] = [];
+
+      selectedSymptoms.forEach((symptom) => {
+        if (symptom.id === "motorik") {
+          if (symptom.selected) {
+            symptomsParts.push(
+              "ada gejala motorik seperti tremor, gemetar, dll",
+            );
+          } else {
+            symptomsParts.push("tidak ada tremor di tangan");
+          }
+        } else if (symptom.id === "bicara") {
+          if (symptom.selected) {
+            symptomsParts.push(
+              "ada gejala gangguan suara seperti kesusahan bicara, artikulasi, lambat, serak, dll",
+            );
+          } else {
+            symptomsParts.push("tidak ada gangguan bicara");
+          }
+        } else if (
+          symptom.id === "lainnya" &&
+          symptom.selected &&
+          symptom.customText.trim()
+        ) {
+          symptomsParts.push(symptom.customText.trim());
+        }
+      });
+
+      const combinedSymptoms = symptomsParts.join(", ");
+      console.log("[deteksi] symptoms string:", combinedSymptoms);
       form.append("symptoms", combinedSymptoms);
       const res = await fetch("/api/deteksi-submit", {
         method: "POST",
@@ -155,9 +192,11 @@ const DeteksiPage = () => {
   };
 
   const isSubmitEnabled = spiralSvg !== null || audioFile !== null;
-  const completedTests = [selectedSymptoms.some(s => s.selected), spiralSvg !== null, audioFile !== null].filter(
-    Boolean,
-  ).length;
+  const completedTests = [
+    selectedSymptoms.some((s) => s.selected),
+    spiralSvg !== null,
+    audioFile !== null,
+  ].filter(Boolean).length;
 
   return (
     <div className="flex w-full flex-col items-center pt-20">
@@ -191,24 +230,27 @@ const DeteksiPage = () => {
                   {/* Symptoms Status */}
                   <div className="flex items-center gap-3">
                     <div
-                      className={`rounded-full p-2 ${selectedSymptoms.some(s => s.selected) ? "bg-green-100" : "bg-neutral-100"}`}
+                      className={`rounded-full p-2 ${selectedSymptoms.some((s) => s.selected) ? "bg-green-100" : "bg-neutral-100"}`}
                     >
-                      {selectedSymptoms.some(s => s.selected) ? (
+                      {selectedSymptoms.some((s) => s.selected) ? (
                         <IconCheck size={20} className="text-green-600" />
                       ) : (
-                        <IconInfoCircle size={20} className="text-neutral-400" />
+                        <IconInfoCircle
+                          size={20}
+                          className="text-neutral-400"
+                        />
                       )}
                     </div>
                     <div className="flex-1">
                       <p
-                        className={`font-medium ${selectedSymptoms.some(s => s.selected) ? "text-green-700" : "text-neutral-500"}`}
+                        className={`font-medium ${selectedSymptoms.some((s) => s.selected) ? "text-green-700" : "text-neutral-500"}`}
                       >
                         Gejala
                       </p>
                       <p
-                        className={`text-sm ${selectedSymptoms.some(s => s.selected) ? "text-green-600" : "text-neutral-400"}`}
+                        className={`text-sm ${selectedSymptoms.some((s) => s.selected) ? "text-green-600" : "text-neutral-400"}`}
                       >
-                        {selectedSymptoms.some(s => s.selected)
+                        {selectedSymptoms.some((s) => s.selected)
                           ? "Gejala telah diisi"
                           : "Belum mengisi gejala"}
                       </p>
@@ -329,71 +371,92 @@ const DeteksiPage = () => {
 
       {/* Informasi Gejala Section */}
       <section className="mx-auto w-full p-4">
-      <section className="mx-auto flex max-w-6xl flex-col items-center justify-center py-8">
-        {/* label */}
-        <div className="w-fit rounded-t-2xl border-x border-t border-neutral-300 bg-white p-2">
-          <div className="flex items-center justify-center gap-2 rounded-full bg-blue-50 px-4 py-2 shadow-inner">
-            <IconInfoCircle size={20} className="text-blue-500" />
-            <p className="font-bold text-blue-500">Informasi Gejala </p>
+        <section className="mx-auto flex max-w-6xl flex-col items-center justify-center py-8">
+          {/* label */}
+          <div className="w-fit rounded-t-2xl border-x border-t border-neutral-300 bg-white p-2">
+            <div className="flex items-center justify-center gap-2 rounded-full bg-blue-50 px-4 py-2 shadow-inner">
+              <IconInfoCircle size={20} className="text-blue-500" />
+              <p className="font-bold text-blue-500">Informasi Gejala </p>
+            </div>
           </div>
-        </div>
-        {/* content */}
-        <div className="w-full space-y-4 rounded-[32px] border border-neutral-300 bg-white p-4">
-          {/* info */}
-          <div className="flex flex-col gap-4 rounded-2xl border border-amber-300 bg-amber-50 p-4">
-            {/* icon */}
-            <div className="flex items-center gap-2">
-              <div className="rounded-full bg-amber-500 p-2">
-                <IconInfoCircle size={24} className="text-white" />
+          {/* content */}
+          <div className="w-full space-y-4 rounded-[32px] border border-neutral-300 bg-white p-4">
+            {/* info */}
+            <div className="flex flex-col gap-4 rounded-2xl border border-amber-300 bg-amber-50 p-4">
+              {/* icon */}
+              <div className="flex items-center gap-2">
+                <div className="rounded-full bg-amber-500 p-2">
+                  <IconInfoCircle size={24} className="text-white" />
+                </div>
+                <p className="font-bold text-neutral-700">
+                  Apakah Anda Memiliki Gejala Berikut?
+                </p>
               </div>
-              <p className="font-bold text-neutral-700">
-                Apakah Anda Memiliki Gejala Berikut?
+              <p className="text-neutral-700">
+                Pilih gejala berikut atau tambahkan deskripsi kustom untuk
+                membantu analisis yang lebih akurat. Ini opsional tetapi sangat
+                membantu.
               </p>
             </div>
-            <p className="text-neutral-700">
-              Pilih gejala berikut atau tambahkan deskripsi kustom untuk membantu analisis yang lebih akurat. Ini opsional tetapi sangat membantu.
-            </p>
-          </div>
 
-          <div className="w-full rounded-2xl border border-dashed border-neutral-300 p-4 space-y-4">
-            {selectedSymptoms.map((symptom) => (
-              <div key={symptom.id} className="border border-neutral-200 rounded-lg p-4">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <span className="sr-only">{symptom.text}</span>
-                  <input
-                    type="checkbox"
-                    checked={symptom.selected}
-                    onChange={() => handleSymptomToggle(symptom.id)}
-                    className="mt-1 rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      {symptom.id === 'motorik' && <IconPencil size={20} className="text-blue-500" />}
-                      {symptom.id === 'bicara' && <IconMicrophone size={20} className="text-green-500" />}
-                      {symptom.id === 'lainnya' && <IconInfoCircle size={20} className="text-amber-500" />}
-                      <p className="text-base font-bold text-neutral-700">{symptom.text}</p>
-                    </div>
-                    {symptom.id === 'lainnya' ? (
-                      <textarea
-                        value={symptom.customText}
-                        onChange={(e) => handleCustomTextChange(symptom.id, e.target.value)}
-                        placeholder="Jelaskan gejala lain yang Anda alami, misalnya: kesulitan berjalan, perubahan suara, dll."
-                        className="w-full min-h-[80px] p-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
-                        maxLength={500}
-                      />
-                    ) : (
-                      <div className="text-sm text-neutral-600">
-                        {symptom.customText}
+            <div className="w-full space-y-4 rounded-2xl border border-dashed border-neutral-300 p-4">
+              {selectedSymptoms.map((symptom) => (
+                <div
+                  key={symptom.id}
+                  className="rounded-lg border border-neutral-200 p-4"
+                >
+                  <label className="flex cursor-pointer items-start gap-3">
+                    <span className="sr-only">{symptom.text}</span>
+                    <input
+                      type="checkbox"
+                      checked={symptom.selected}
+                      onChange={() => handleSymptomToggle(symptom.id)}
+                      className="mt-1 rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <div className="mb-2 flex items-center gap-2">
+                        {symptom.id === "motorik" && (
+                          <IconPencil size={20} className="text-blue-500" />
+                        )}
+                        {symptom.id === "bicara" && (
+                          <IconMicrophone
+                            size={20}
+                            className="text-green-500"
+                          />
+                        )}
+                        {symptom.id === "lainnya" && (
+                          <IconInfoCircle
+                            size={20}
+                            className="text-amber-500"
+                          />
+                        )}
+                        <p className="text-base font-bold text-neutral-700">
+                          {symptom.text}
+                        </p>
                       </div>
-                    )}
-                  </div>
-                </label>
-              </div>
-            ))}
+                      {symptom.id === "lainnya" ? (
+                        <textarea
+                          value={symptom.customText}
+                          onChange={(e) =>
+                            handleCustomTextChange(symptom.id, e.target.value)
+                          }
+                          placeholder="Jelaskan gejala lain yang Anda alami, misalnya: kesulitan berjalan, perubahan suara, dll."
+                          className="min-h-[80px] w-full resize-none rounded-md border border-neutral-300 p-2 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                          maxLength={500}
+                        />
+                      ) : (
+                        <div className="text-sm text-neutral-600">
+                          {symptom.customText}
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </section>
       </section>
-</section>
       {/*Detection Section*/}
       <section className="mx-auto w-full p-4">
         {/* Gambar Spiral */}
@@ -587,9 +650,9 @@ const DeteksiPage = () => {
                 {/* Symptoms Status */}
                 <div className="flex items-center gap-3">
                   <div
-                    className={`rounded-full p-2 ${selectedSymptoms.some(s => s.selected) ? "bg-green-100" : "bg-neutral-100"}`}
+                    className={`rounded-full p-2 ${selectedSymptoms.some((s) => s.selected) ? "bg-green-100" : "bg-neutral-100"}`}
                   >
-                    {selectedSymptoms.some(s => s.selected) ? (
+                    {selectedSymptoms.some((s) => s.selected) ? (
                       <IconCheck size={20} className="text-green-600" />
                     ) : (
                       <IconInfoCircle size={20} className="text-neutral-400" />
@@ -597,14 +660,14 @@ const DeteksiPage = () => {
                   </div>
                   <div className="flex-1">
                     <p
-                      className={`font-medium ${selectedSymptoms.some(s => s.selected) ? "text-green-700" : "text-neutral-500"}`}
+                      className={`font-medium ${selectedSymptoms.some((s) => s.selected) ? "text-green-700" : "text-neutral-500"}`}
                     >
                       Deskripsi Gejala
                     </p>
                     <p
-                      className={`text-sm ${selectedSymptoms.some(s => s.selected) ? "text-green-600" : "text-neutral-400"}`}
+                      className={`text-sm ${selectedSymptoms.some((s) => s.selected) ? "text-green-600" : "text-neutral-400"}`}
                     >
-                      {selectedSymptoms.some(s => s.selected)
+                      {selectedSymptoms.some((s) => s.selected)
                         ? "Gejala telah diisi"
                         : "Belum mengisi gejala"}
                     </p>
